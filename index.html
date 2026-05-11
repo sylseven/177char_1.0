@@ -14,7 +14,7 @@
   }
   html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;
-    font-size:15px;line-height:1.6;}
+    font-size:15px;line-height:1.6;overflow-x:hidden;}
   body{min-height:100vh;padding-bottom:40px;}
 
   header{padding:16px 18px 10px;text-align:center;background:var(--card);
@@ -98,7 +98,7 @@
   @keyframes spin{to{transform:rotate(360deg);}}
 
   .modal-mask{position:fixed;inset:0;background:rgba(47,40,33,.5);display:none;
-    align-items:center;justify-content:center;z-index:100;padding:16px;}
+    align-items:center;justify-content:center;z-index:200;padding:16px;}
   .modal-mask.show{display:flex;}
   .modal{background:#fff;border-radius:14px;padding:18px;width:100%;max-width:420px;
     max-height:88vh;overflow-y:auto;}
@@ -114,8 +114,8 @@
   details[open] summary::after{content:"−";}
   details > div{padding:0 14px 14px;}
 
-  .file-btn{display:inline-block;width:100%;text-align:center;
-    padding:10px 14px;background:transparent;color:var(--accent-d);
+  .file-btn{display:block;width:100%;text-align:center;
+    padding:11px 14px;background:transparent;color:var(--accent-d);
     border:1px dashed var(--accent);border-radius:9px;cursor:pointer;font-size:14px;}
   .file-btn input{display:none;}
 
@@ -175,6 +175,50 @@
 
   .img-thumb{max-width:100%;max-height:240px;border-radius:10px;
     border:1px solid var(--line);display:block;margin:8px auto;}
+
+  /* 关系网画布 */
+  .canvas-wrap{position:relative;background:linear-gradient(135deg,#fbf7ee,#f0e7d3);
+    border:1px solid var(--line);border-radius:14px;
+    height:60vh;min-height:380px;overflow:hidden;
+    background-image:radial-gradient(circle,#d8c9ad 1px,transparent 1px);
+    background-size:20px 20px;touch-action:none;}
+  .canvas-inner{position:absolute;inset:0;transform-origin:0 0;transition:transform .15s;}
+  .canvas-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+  .canvas-svg line{stroke:var(--accent);stroke-width:1.5;opacity:.55;}
+  .canvas-svg .label-bg{fill:#fff;stroke:var(--line);stroke-width:.5;}
+  .canvas-svg text.edge-label{font-size:10px;fill:var(--accent-d);pointer-events:none;}
+
+  .node{position:absolute;background:#fff;border:2px solid var(--accent);
+    border-radius:14px;padding:7px 11px;font-size:12px;line-height:1.4;
+    min-width:60px;max-width:140px;text-align:center;cursor:grab;
+    box-shadow:0 2px 8px rgba(157,123,91,.18);
+    user-select:none;-webkit-user-select:none;touch-action:none;
+    transform:translate(-50%,-50%);transition:box-shadow .15s,border-color .15s;}
+  .node:active{cursor:grabbing;}
+  .node.center{background:var(--accent);color:#fff;border-color:var(--accent-d);
+    font-weight:700;font-size:13px;min-width:80px;}
+  .node.selected{border-color:var(--err);box-shadow:0 0 0 3px rgba(196,106,106,.25),0 2px 8px rgba(157,123,91,.18);}
+  .node .nname{font-weight:600;}
+  .node .nrole{font-size:10px;opacity:.75;margin-top:1px;}
+
+  .canvas-toolbar{position:absolute;top:8px;right:8px;display:flex;gap:5px;z-index:5;}
+  .canvas-toolbar button{padding:7px 11px;font-size:12px;background:rgba(255,255,255,.95);
+    color:var(--accent-d);border:1px solid var(--accent);min-width:auto;
+    border-radius:8px;font-weight:600;}
+  .canvas-info{position:absolute;bottom:8px;left:8px;font-size:11px;color:var(--sub);
+    background:rgba(255,255,255,.85);padding:3px 8px;border-radius:8px;z-index:5;}
+
+  .node-actions{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);
+    background:#fff;border:1px solid var(--accent);border-radius:14px;
+    padding:12px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:150;
+    max-width:calc(100vw - 24px);width:340px;display:none;}
+  .node-actions.show{display:block;}
+  .node-actions .na-name{font-weight:700;color:var(--accent-d);font-size:14px;margin-bottom:2px;}
+  .node-actions .na-role{font-size:12px;color:var(--sub);margin-bottom:4px;}
+  .node-actions .na-desc{font-size:12px;color:var(--ink);margin-bottom:8px;
+    max-height:60px;overflow-y:auto;line-height:1.5;}
+  .node-actions .na-btns{display:flex;gap:5px;flex-wrap:wrap;}
+  .node-actions .na-btns button{flex:1;min-width:60px;padding:7px 8px;font-size:12px;}
 </style>
 </head>
 <body>
@@ -188,6 +232,7 @@
   <div class="tab active" data-tab="make">创建</div>
   <div class="tab" data-tab="wb">世界书</div>
   <div class="tab" data-tab="status">状态栏</div>
+  <div class="tab" data-tab="rel">关系网</div>
   <div class="tab" data-tab="hist">历史</div>
   <div class="tab" data-tab="cfg">配置</div>
 </nav>
@@ -216,7 +261,7 @@
 
     <div class="card">
       <div class="ctitle">📷 识图分析角色卡</div>
-      <div class="hint" style="margin-bottom:8px;">上传角色立绘/参考图，AI 会提取外貌特征（外貌、发型、气质、瞳色、特殊外貌、兽人特征）填入表单。<br>需要使用支持视觉的模型，如 gpt-4o / gpt-4-vision / claude-3。</div>
+      <div class="hint" style="margin-bottom:8px;">上传角色立绘，AI 提取外貌特征（外貌/发型/气质/瞳色/特殊外貌/兽人特征）填入表单。需视觉模型如 gpt-4o。</div>
       <label class="file-btn" for="imgFile">
         🖼 选择角色卡图片
         <input type="file" id="imgFile" accept="image/*" />
@@ -240,8 +285,7 @@
         <div><label>身高</label><input id="f_height" /></div>
         <div><label>生日/星座</label><input id="f_birth" /></div>
       </div>
-      <label>身份/职业</label>
-      <textarea id="f_job" class="compact"></textarea>
+      <label>身份/职业</label><textarea id="f_job" class="compact"></textarea>
       <label>居住地</label><input id="f_city" />
     </div></details>
 
@@ -249,11 +293,9 @@
       <label>外貌关键词</label><textarea id="f_appear"></textarea>
       <label>发型/发色</label><textarea id="f_hair" class="compact"></textarea>
       <label>气质氛围</label><textarea id="f_aura" class="compact"></textarea>
-      <label>瞳色 👁</label><textarea id="f_eyes" class="compact" placeholder="例：琥珀色 / 异色瞳：左蓝右金"></textarea>
-      <label>特殊外貌（伤疤/纹身/穿洞等）</label>
-      <textarea id="f_special" placeholder="例：左眼下方一道旧疤, 锁骨处有玫瑰纹身"></textarea>
-      <label>兽人/非人特征</label>
-      <textarea id="f_beast" placeholder="例：猫耳猫尾, 头顶一对小巧的羊角"></textarea>
+      <label>瞳色 👁</label><textarea id="f_eyes" class="compact" placeholder="例：琥珀色 / 异色瞳"></textarea>
+      <label>特殊外貌（伤疤/纹身/穿洞等）</label><textarea id="f_special"></textarea>
+      <label>兽人/非人特征</label><textarea id="f_beast" placeholder="例：猫耳猫尾, 龙角"></textarea>
     </div></details>
 
     <details><summary>③ 性格</summary><div>
@@ -295,25 +337,20 @@
     </div></details>
 
     <details><summary>⑩ 语言使用规则 🗣</summary><div>
-      <div class="hint" style="margin-bottom:6px;">定义 char 怎么说话——标点、语气、特殊表达。生成时作为行为规则嵌入人设。</div>
-      <label>标点使用习惯</label>
-      <textarea id="f_punct" class="compact"></textarea>
-      <label>语气词偏好</label>
-      <textarea id="f_mood" class="compact"></textarea>
-      <label>回复长度</label>
-      <input id="f_len" />
-      <label>特殊表达习惯</label>
-      <textarea id="f_express" class="compact"></textarea>
-      <label>自定义规则（重点）</label>
-      <textarea id="f_langrule" placeholder="例：&#10;使用…… = 无语 / 吃醋 / 不想搭理&#10;使用「。」独立成句 = 冷漠"></textarea>
+      <div class="hint" style="margin-bottom:6px;">定义 char 怎么说话——标点、语气、特殊表达。</div>
+      <label>标点使用习惯</label><textarea id="f_punct" class="compact"></textarea>
+      <label>语气词偏好</label><textarea id="f_mood" class="compact"></textarea>
+      <label>回复长度</label><input id="f_len" />
+      <label>特殊表达习惯</label><textarea id="f_express" class="compact"></textarea>
+      <label>自定义规则（重点）</label><textarea id="f_langrule" placeholder="例：&#10;…… = 无语 / 吃醋&#10;。独立成句 = 冷漠"></textarea>
     </div></details>
 
     <details><summary>⑪ 日程参考 🗓</summary><div>
-      <div class="hint" style="margin-bottom:6px;">char 的大致日程，仅作参考底色，不是死板剧本。AI 会被告知"日程不必逐条遵守"，让 char 像真人一样灵活反应。</div>
-      <label>工作日（周一～周五）大致安排</label>
-      <textarea id="f_weekday" placeholder="例：&#10;7:30 起床洗漱&#10;8:30-12:00 上课/工作&#10;12:00-13:30 午饭+午休&#10;14:00-17:30 上课/工作&#10;晚上 看书/打游戏&#10;23:30 睡觉"></textarea>
-      <label>周末大致安排</label>
-      <textarea id="f_weekend" placeholder="例：&#10;晚起到10点&#10;上午 慢悠悠吃早午餐&#10;下午 出门逛街/见朋友&#10;晚上 看电影&#10;深夜 emo时间"></textarea>
+      <div class="hint" style="margin-bottom:6px;">char 的大致日程，仅作参考底色，不是死板剧本。</div>
+      <label>工作日（周一～周五）</label>
+      <textarea id="f_weekday" placeholder="例：&#10;7:30 起床&#10;8:30-12:00 上课&#10;..."></textarea>
+      <label>周末</label>
+      <textarea id="f_weekend" placeholder="例：&#10;晚起到10点&#10;..."></textarea>
     </div></details>
 
     <div class="card">
@@ -333,6 +370,7 @@
 
   <section class="panel" id="panel-wb"><div id="wbBody"></div></section>
   <section class="panel" id="panel-status"><div id="statusBody"></div></section>
+  <section class="panel" id="panel-rel"><div id="relBody"></div></section>
 
   <section class="panel" id="panel-hist">
     <div class="card">
@@ -360,7 +398,7 @@
       <label>模型</label>
       <select id="modelSelect"><option value="">— 请先拉取 —</option></select>
       <input id="modelManual" placeholder="或手动输入模型名" style="margin-top:6px;" />
-      <label>温度 (temperature)</label>
+      <label>温度</label>
       <input id="temperature" type="number" step="0.1" min="0" max="2" value="0.85" />
       <div class="btn-row">
         <button class="ghost" id="btnFetchModels">拉取模型</button>
@@ -373,9 +411,21 @@
 
 </main>
 
-<div class="modal-mask" id="modalMask">
-  <div class="modal" id="modalBox"></div>
+<div class="node-actions" id="nodeActions">
+  <div class="na-name" id="naName"></div>
+  <div class="na-role" id="naRole"></div>
+  <div class="na-desc" id="naDesc"></div>
+  <div class="na-btns">
+    <button class="ghost" onclick="editNode()">编辑</button>
+    <button class="ghost" onclick="expandNode()">✨ AI 扩展</button>
+    <button class="ghost" onclick="addChildNode()">＋ 子NPC</button>
+    <button class="ghost" onclick="setCenter()">设为中心</button>
+    <button class="danger" onclick="deleteNode()">删除</button>
+    <button onclick="closeNA()">关闭</button>
+  </div>
 </div>
+
+<div class="modal-mask" id="modalMask"><div class="modal" id="modalBox"></div></div>
 
 <script>
 const LS={cfg:'cg_cfg',presets:'cg_presets',hist:'cg_hist'};
@@ -384,26 +434,9 @@ const FIELDS=['name','gender','age','height','birth','job','city',
   'appear','hair','aura','eyes','special','beast',
   'traits','mbti','speech','style','items','family','child','teen','event','now',
   'relation','hobby','like','dislike','quirk','secret','other',
-  'punct','mood','len','express','langrule',
-  'weekday','weekend','tone'];
+  'punct','mood','len','express','langrule','weekday','weekend','tone'];
 
-const DEFAULT_STATUS_CODE='【状态栏规则·必须遵守】\n'+
-'你（char）每次回复消息后，必须在末尾另起一行，以以下固定格式追加一个"状态栏"：\n\n'+
-'═══════ ❀ 状态栏 ❀ ═══════\n'+
-'👔 穿着：[根据当下场景具体描述]\n'+
-'💭 心声：[符合char性格与说话风格的当下真实想法]\n'+
-'❤️ 好感度：[数字]/100　[变化方向：↑/↓/-]\n'+
-'═══════════════════════\n\n'+
-'【心声特别规则】\n'+
-'• 常规情况：心声 = char 当下正常想法（符合人设/语言风格）。\n'+
-'• 特殊情境（被刺激、嫉妒、极端情绪、秘密被触及）：心声【有概率】呈现 char 的阴暗面/隐藏念头，与表面回复形成反差。\n'+
-'• 心声必须真正符合 char 人设，绝不 OOC。\n\n'+
-'【聊天风格】\n'+
-'本次对话为短消息聊天（类似微信），回复简短自然，不要长篇大论；状态栏在每条回复末尾出现。\n\n'+
-'【格式要求】\n'+
-'• 状态栏前空一行与正文分隔。\n'+
-'• 三个字段必须出现，缺一不可。\n'+
-'• 好感度根据本次互动调整并标明方向（↑/↓/-）。';
+const DEFAULT_STATUS_CODE='【状态栏规则·必须遵守】\n你（char）每次回复消息后，必须在末尾另起一行，以以下固定格式追加一个"状态栏"：\n\n═══════ ❀ 状态栏 ❀ ═══════\n👔 穿着：[根据当下场景具体描述]\n💭 心声：[符合char性格的当下想法]\n❤️ 好感度：[数字]/100　[变化方向：↑/↓/-]\n═══════════════════════\n\n【心声特别规则】\n• 常规情况：心声 = 正常想法（符合人设）。\n• 特殊情境（被刺激/嫉妒/极端情绪/秘密被触及）：心声【有概率】呈现阴暗面，与表面回复形成反差。\n• 心声必须真正符合 char 人设，绝不 OOC。\n\n【聊天风格】\n本次对话为短消息聊天（类似微信），回复简短自然，状态栏在每条回复末尾出现。';
 
 const CHIP_OPTIONS={
   f_gender:{mode:'single',opts:['女','男','无性别','双性','跨性别']},
@@ -434,15 +467,11 @@ const CHIP_OPTIONS={
 
 function renderChips(){
   for(const id in CHIP_OPTIONS){
-    const cfg=CHIP_OPTIONS[id];
-    const target=$(id);
-    if(!target)continue;
-    if(target.parentNode.querySelector('.chips[data-for="'+id+'"]'))continue;
-    const wrap=document.createElement('div');
-    wrap.className='chips';wrap.dataset.for=id;
+    const cfg=CHIP_OPTIONS[id];const target=$(id);
+    if(!target||target.parentNode.querySelector('.chips[data-for="'+id+'"]'))continue;
+    const wrap=document.createElement('div');wrap.className='chips';wrap.dataset.for=id;
     cfg.opts.forEach(v=>{
-      const chip=document.createElement('span');
-      chip.className='chip';chip.textContent=v;
+      const chip=document.createElement('span');chip.className='chip';chip.textContent=v;
       chip.dataset.target=id;chip.dataset.val=v;chip.dataset.mode=cfg.mode;
       chip.addEventListener('click',()=>handleChip(chip));
       wrap.appendChild(chip);
@@ -494,10 +523,11 @@ document.querySelectorAll('.tab').forEach(t=>{
     if(k==='hist')renderHist();
     else if(k==='wb')renderWBTab();
     else if(k==='status')renderStatusTab();
+    else if(k==='rel')renderRelTab();
   });
 });
 
-function showStatus(el,msg,type){el.className='status show '+(type||'');el.textContent=msg;if(type==='ok')setTimeout(()=>el.classList.remove('show'),2500);}
+function showStatus(el,msg,type){if(!el)return;el.className='status show '+(type||'');el.textContent=msg;if(type==='ok')setTimeout(()=>el.classList.remove('show'),2500);}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
 /* ===== 配置 ===== */
@@ -506,9 +536,8 @@ function loadCfg(){
   $('baseUrl').value=c.baseUrl||'';$('apiKey').value=c.apiKey||'';
   $('modelManual').value=c.model||'';$('temperature').value=c.temperature||0.85;
 }
-function getCfg(){return{baseUrl:$('baseUrl').value.trim().replace(/\/+$/,''),apiKey:$('apiKey').value.trim(),
-  model:($('modelSelect').value||$('modelManual').value).trim(),temperature:parseFloat($('temperature').value)||0.85};}
-$('btnSaveCfg').onclick=()=>{localStorage.setItem(LS.cfg,JSON.stringify(getCfg()));showStatus($('cfgStatus'),'✓ 配置已保存','ok');};
+function getCfg(){return{baseUrl:$('baseUrl').value.trim().replace(/\/+$/,''),apiKey:$('apiKey').value.trim(),model:($('modelSelect').value||$('modelManual').value).trim(),temperature:parseFloat($('temperature').value)||0.85};}
+$('btnSaveCfg').onclick=()=>{localStorage.setItem(LS.cfg,JSON.stringify(getCfg()));showStatus($('cfgStatus'),'✓ 已保存','ok');};
 function loadPresets(){
   const arr=JSON.parse(localStorage.getItem(LS.presets)||'[]');
   const sel=$('presetSelect');sel.innerHTML='<option value="">— 选择预设 —</option>';
@@ -532,7 +561,7 @@ window.doSavePreset=()=>{
   showStatus($('cfgStatus'),'✓ 已保存','ok');
 };
 $('btnDelPreset').onclick=()=>{
-  const i=$('presetSelect').value;if(i===''){alert('请先选择预设');return;}
+  const i=$('presetSelect').value;if(i===''){alert('请先选择');return;}
   if(!confirm('删除该预设？'))return;
   const arr=JSON.parse(localStorage.getItem(LS.presets)||'[]');
   arr.splice(+i,1);localStorage.setItem(LS.presets,JSON.stringify(arr));loadPresets();
@@ -563,7 +592,6 @@ $('btnTest').onclick=async()=>{
   }catch(e){showStatus($('cfgStatus'),'✗ '+e.message,'err');}
 };
 
-/* ===== LLM ===== */
 async function callLLM(messages,opts){
   opts=opts||{};
   const c=getCfg();
@@ -577,21 +605,14 @@ async function callLLM(messages,opts){
 }
 function extractJSON(txt){
   let s=txt.replace(/```json\s*/gi,'').replace(/```\s*/g,'');
-  const m=s.match(/\{[\s\S]*\}/);
-  if(!m)throw new Error('未返回 JSON');
+  const m=s.match(/\{[\s\S]*\}/);if(!m)throw new Error('未返回 JSON');
   return JSON.parse(m[0]);
 }
 
 /* ===== 表单 ===== */
 function collectForm(){const o={};FIELDS.forEach(k=>{const el=$('f_'+k);o[k]=el?el.value.trim():'';});return o;}
 function fillForm(o){FIELDS.forEach(k=>{const el=$('f_'+k);if(el&&o[k]!==undefined)el.value=o[k]||'';});syncChips();}
-function fillFormPartial(o){
-  for(const k in o){
-    const el=$('f_'+k);
-    if(el&&o[k]!==undefined&&o[k]!==null&&o[k]!=='')el.value=o[k];
-  }
-  syncChips();
-}
+function fillFormPartial(o){for(const k in o){const el=$('f_'+k);if(el&&o[k])el.value=o[k];}syncChips();}
 function buildBrief(f){
   const lines=[];const push=(k,v)=>{if(v)lines.push('【'+k+'】'+v);};
   push('姓名',f.name);push('性别',f.gender);push('年龄',f.age);
@@ -627,10 +648,9 @@ async function readTxtSmart(buf){
   return new TextDecoder('utf-8').decode(buf);
 }
 async function readDocx(buf){
-  if(typeof JSZip==='undefined')throw new Error('JSZip 未加载，无法解析 docx');
+  if(typeof JSZip==='undefined')throw new Error('JSZip 未加载');
   const zip=await JSZip.loadAsync(buf);
-  const docFile=zip.file('word/document.xml');
-  if(!docFile)throw new Error('不是有效的 docx 文件');
+  const docFile=zip.file('word/document.xml');if(!docFile)throw new Error('不是有效 docx');
   const xml=await docFile.async('string');
   const paragraphs=xml.split(/<\/w:p>/);const out=[];
   for(const p of paragraphs){
@@ -638,8 +658,7 @@ async function readDocx(buf){
     while((m=reg.exec(p))!==null){
       texts.push(m[1].replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&'));
     }
-    const hasBr=/<w:br\s*\/>/.test(p);const line=texts.join('');
-    if(line||texts.length)out.push(line+(hasBr?'\n':''));
+    const line=texts.join('');if(line||texts.length)out.push(line);
   }
   return out.join('\n').replace(/\n{3,}/g,'\n\n').trim();
 }
@@ -649,7 +668,7 @@ async function readFileSmart(file){
   return await readTxtSmart(buf);
 }
 
-/* ===== 导入文本 ===== */
+/* ===== 导入 ===== */
 let _charText='';
 function resetCharImport(){_charText='';$('charFile').value='';$('charFileName').textContent='';$('charPreview').value='';$('charRel').value='';$('importStatus').classList.remove('show');}
 $('btnClearChar').onclick=()=>{resetCharImport();showStatus($('importStatus'),'✓ 已清空','ok');};
@@ -658,7 +677,7 @@ $('charFile').onchange=async function(e){
   $('charFileName').textContent='已选择：'+f.name+'（读取中…）';
   try{
     const txt=await readFileSmart(f);_charText=txt;
-    $('charPreview').value=txt.slice(0,3000)+(txt.length>3000?'\n\n...（已截断预览，完整内容已读取）':'');
+    $('charPreview').value=txt.slice(0,3000)+(txt.length>3000?'\n\n...（已截断预览）':'');
     $('charFileName').textContent='已选择：'+f.name+'（'+txt.length+' 字符）';
   }catch(err){$('charFileName').textContent='读取失败：'+err.message;_charText='';}
 };
@@ -674,23 +693,12 @@ $('btnImportChar').onclick=async()=>{
   $('btnImportChar').innerHTML='<span class="loading"></span>分析中…';
   $('importStatus').classList.remove('show');
   try{
-    const sys='你是严谨的角色卡分析师。用户提供参考资料，请提取或基于其设定生成 char 标签大纲。\n'+
-      '若资料中已有明确角色，直接提取；若是世界观资料，则创造契合的角色；若用户给"补充要求"，优先级最高。\n'+
-      '严格输出 JSON（不要 markdown）：\n'+
-      '{"name":"","gender":"","age":"","height":"","birth":"","job":"","city":"",\n'+
-      '"appear":"","hair":"","aura":"","eyes":"瞳色","special":"特殊外貌如疤痕纹身","beast":"兽人/非人特征如猫耳/角",\n'+
-      '"traits":"","mbti":"","speech":"","style":"","items":"",\n'+
-      '"family":"","child":"","teen":"","event":"",\n'+
-      '"now":"","relation":"","hobby":"","like":"","dislike":"",\n'+
-      '"quirk":"","secret":"","other":"",\n'+
-      '"punct":"","mood":"","len":"","express":"","langrule":"",\n'+
-      '"weekday":"工作日大致日程","weekend":"周末大致日程"}\n'+
-      '所有字段用简短关键词。无相关信息可留空。';
-    const userMsg='【参考资料】\n'+charText+'\n\n'+(rel?'【补充要求·优先遵守】\n'+rel+'\n\n':'')+'请输出 char 大纲 JSON。';
+    const sys='你是严谨的角色卡分析师。请提取或基于参考资料生成 char 标签大纲。\n严格输出 JSON（不要 markdown）：\n{"name":"","gender":"","age":"","height":"","birth":"","job":"","city":"",\n"appear":"","hair":"","aura":"","eyes":"","special":"","beast":"",\n"traits":"","mbti":"","speech":"","style":"","items":"",\n"family":"","child":"","teen":"","event":"",\n"now":"","relation":"","hobby":"","like":"","dislike":"",\n"quirk":"","secret":"","other":"",\n"punct":"","mood":"","len":"","express":"","langrule":"",\n"weekday":"","weekend":""}\n所有字段用简短关键词。';
+    const userMsg='【参考资料】\n'+charText+'\n\n'+(rel?'【补充要求·优先遵守】\n'+rel+'\n\n':'')+'请输出 JSON。';
     const out=await callLLM([{role:'system',content:sys},{role:'user',content:userMsg}],{temperature:0.6});
     const data=extractJSON(out);
     fillForm(data);
-    showStatus($('importStatus'),'✓ 已生成并填入表单，可继续编辑','ok');
+    showStatus($('importStatus'),'✓ 已填入表单','ok');
     document.querySelectorAll('#panel-make details').forEach(d=>d.open=true);
   }catch(e){showStatus($('importStatus'),'✗ '+e.message,'err');}
   finally{$('btnImportChar').disabled=false;$('btnImportChar').innerHTML='分析并填入表单';}
@@ -698,22 +706,14 @@ $('btnImportChar').onclick=async()=>{
 
 /* ===== 识图 ===== */
 let _imgDataUrl='';
-function resetImg(){
-  _imgDataUrl='';
-  $('imgFile').value='';
-  $('imgThumb').style.display='none';
-  $('imgThumb').src='';
-  $('btnAnalyzeImg').disabled=true;
-  $('imgStatus').classList.remove('show');
-}
+function resetImg(){_imgDataUrl='';$('imgFile').value='';$('imgThumb').style.display='none';$('imgThumb').src='';$('btnAnalyzeImg').disabled=true;$('imgStatus').classList.remove('show');}
 $('btnClearImg').onclick=()=>{resetImg();showStatus($('imgStatus'),'✓ 已清空','ok');};
 $('imgFile').onchange=function(e){
   const f=e.target.files[0];if(!f)return;
   const reader=new FileReader();
   reader.onload=ev=>{
     _imgDataUrl=ev.target.result;
-    $('imgThumb').src=_imgDataUrl;
-    $('imgThumb').style.display='block';
+    $('imgThumb').src=_imgDataUrl;$('imgThumb').style.display='block';
     $('btnAnalyzeImg').disabled=false;
     showStatus($('imgStatus'),'图片已加载，点「分析图片并填入」','ok');
   };
@@ -722,107 +722,48 @@ $('imgFile').onchange=function(e){
 $('btnAnalyzeImg').onclick=async()=>{
   if(!_imgDataUrl)return;
   const c=getCfg();
-  if(!c.baseUrl||!c.apiKey||!c.model){showStatus($('imgStatus'),'请先在「配置」中设置 API（需视觉模型如 gpt-4o）','err');return;}
+  if(!c.baseUrl||!c.apiKey||!c.model){showStatus($('imgStatus'),'请先配置 API（需视觉模型）','err');return;}
   $('btnAnalyzeImg').disabled=true;
   $('btnAnalyzeImg').innerHTML='<span class="loading"></span>识图中…';
-  showStatus($('imgStatus'),'',''); $('imgStatus').classList.remove('show');
+  $('imgStatus').classList.remove('show');
   try{
-    const sys='你是角色立绘分析师。请仔细观察用户上传的角色图片，提取其外貌特征。\n'+
-      '严格输出 JSON（不要 markdown），字段：\n'+
-      '{\n'+
-      '  "appear":"外貌关键词，逗号分隔（眼型/唇型/身材/肤色等）",\n'+
-      '  "hair":"发型与发色描述",\n'+
-      '  "aura":"整体气质氛围",\n'+
-      '  "eyes":"瞳色（具体颜色，如琥珀色 / 异色瞳：左蓝右金）",\n'+
-      '  "special":"特殊外貌（疤痕/纹身/穿洞/胎记等，无则留空）",\n'+
-      '  "beast":"兽人/非人特征（耳尾/角/翅膀/鳞片等，无则留空）",\n'+
-      '  "style":"穿搭风格关键词",\n'+
-      '  "items":"明显的配饰/单品",\n'+
-      '  "gender":"性别（女/男/其他）",\n'+
-      '  "age":"年龄段（如 18-22 岁）"\n'+
-      '}\n'+
-      '请如实描述图片中可见的特征。';
+    const sys='你是角色立绘分析师。提取角色外貌特征。严格输出 JSON：\n{"appear":"","hair":"","aura":"","eyes":"瞳色","special":"特殊外貌","beast":"兽人/非人特征","style":"穿搭","items":"配饰","gender":"","age":""}\n如实描述图片可见特征。';
     const r=await fetch(c.baseUrl+'/chat/completions',{method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.apiKey},
-      body:JSON.stringify({
-        model:c.model,
-        temperature:0.5,
-        messages:[
-          {role:'system',content:sys},
-          {role:'user',content:[
-            {type:'text',text:'请分析这张角色图片，提取外貌特征并输出 JSON。'},
-            {type:'image_url',image_url:{url:_imgDataUrl}}
-          ]}
-        ]
-      })});
+      body:JSON.stringify({model:c.model,temperature:0.5,messages:[
+        {role:'system',content:sys},
+        {role:'user',content:[
+          {type:'text',text:'分析这张角色图片并输出 JSON。'},
+          {type:'image_url',image_url:{url:_imgDataUrl}}
+        ]}
+      ]})});
     if(!r.ok){const t=await r.text();throw new Error('HTTP '+r.status+' '+t.slice(0,150));}
     const j=await r.json();
     const txt=(j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content||'').trim();
     if(!txt)throw new Error('返回为空');
     const data=extractJSON(txt);
     fillFormPartial(data);
-    showStatus($('imgStatus'),'✓ 已提取外貌特征并填入表单，可继续编辑/选择标签','ok');
+    showStatus($('imgStatus'),'✓ 已填入外貌字段','ok');
     document.querySelectorAll('#panel-make details').forEach((d,i)=>{if(i<2)d.open=true;});
-  }catch(e){
-    showStatus($('imgStatus'),'✗ '+e.message+'（请确认模型支持视觉，如 gpt-4o）','err');
-  }finally{
-    $('btnAnalyzeImg').disabled=false;
-    $('btnAnalyzeImg').innerHTML='分析图片并填入';
-  }
+  }catch(e){showStatus($('imgStatus'),'✗ '+e.message+'（请用支持视觉的模型）','err');}
+  finally{$('btnAnalyzeImg').disabled=false;$('btnAnalyzeImg').innerHTML='分析图片并填入';}
 };
 
 /* ===== 主生成 ===== */
-const SYS_MAIN='你是一位专业的角色设定撰写师，擅长把零碎的人物标签扩写成有血有肉、立体真实的 char 人设。\n'+
-'1. 完全基于用户标签扩写，不无中生有添加重大设定（小细节可合理补充）；\n'+
-'2. 让人物有真实感、矛盾感、层次感；\n'+
-'3. 输出结构化中文人设，按以下板块（标题用 ◆ 包裹），所有板块都必须输出：\n\n'+
-'   ◆ 基础档案 ◆ ：罗列基础信息\n'+
-'   ◆ 外貌速写 ◆ ：80-180 字描写。务必把瞳色、特殊外貌（疤痕/纹身等）、兽人/非人特征（耳尾/角/翅膀等）自然融入描写。\n'+
-'   ◆ 性格剖析 ◆ ：分点 3-5 条\n'+
-'   ◆ 穿搭品味 ◆ ：一段总述\n'+
-'   ◆ 衣橱 ◆ ：4 套不同场合穿搭（日常/正式/居家/特殊场合），每套 60-100 字\n'+
-'   ◆ 故事背景 ◆ ：完整人生小传，约 1200 字。务必详细，分阶段：\n'+
-'       · 童年（出生家庭、童年环境、性格雏形）\n'+
-'       · 少年/上学时期（关键事件、人际关系、转折点）\n'+
-'       · 成年/进入社会（如已成年）或当前阶段（如仍在校）\n'+
-'       · 现在（处于人生哪个节点、面对什么）\n'+
-'       注：若 char 是校园/学生身份，则成年阶段可省略，重点写当下校园生活与心境。\n'+
-'   ◆ 喜好厌恶 ◆\n'+
-'   ◆ 小怪癖 & 隐藏面 ◆\n'+
-'   ◆ 语言使用规则 ◆ ：\n'+
-'       这部分非常重要，必须详细具体，使其他 AI 看到能完美还原 char 说话方式。格式：\n'+
-'       • 标点符号：列出 char 对各种标点的使用偏好；某个标点出现时代表的情绪（例：…… = 无语/吃醋）\n'+
-'       • 语气词：爱用哪些，在什么情况\n'+
-'       • 回复长度与节奏\n'+
-'       • 特殊表达习惯：反问/比喻/沉默等\n'+
-'       • 其他规则：自定义细则\n'+
-'   ◆ 日程参考 ◆ ：\n'+
-'       按工作日/周末两栏列出 char 大致一日生活节奏（晨起/上午/中午/下午/晚上/夜间）。\n'+
-'       【极其重要】末尾必须附上以下使用说明（原文输出，让未来使用此卡的 AI 看到）：\n'+
-'       --- 日程使用说明 ---\n'+
-'       本日程仅作 char 生活节奏的参考底色，不是必须严格执行的剧本。\n'+
-'       请把 char 当作真人对待——人的日程并非每天一成不变。\n'+
-'       · 用户在某时段发消息，不要机械重复"我现在在做X"；\n'+
-'       · char 可能正按表行事 / 可能临时变动 / 可能刚结束 / 可能因故没去 / 可能在偷懒；\n'+
-'       · 让 char 根据当下情境、情绪、与用户的关系，自然地反应；\n'+
-'       · 日程是底色，让 char 的生活有质感，但不要让它变成念台词。\n'+
-'   ◆ 一句话标签 ◆\n\n'+
-'4. 直接输出正文，不要解释，不要 markdown 代码块。';
+const SYS_MAIN='你是专业的角色设定撰写师，把零碎标签扩写成立体真实的 char 人设。\n1. 完全基于用户标签，不无中生有；\n2. 真实感、矛盾感、层次感；\n3. 输出结构化中文人设，按以下板块（标题用 ◆ 包裹），都必须输出：\n\n   ◆ 基础档案 ◆ ：罗列基础信息\n   ◆ 外貌速写 ◆ ：80-180 字。务必把瞳色、特殊外貌（疤痕/纹身）、兽人/非人特征（耳尾/角/翅膀）自然融入。\n   ◆ 性格剖析 ◆ ：分点 3-5 条\n   ◆ 穿搭品味 ◆\n   ◆ 衣橱 ◆ ：4 套不同场合穿搭，每套 60-100 字\n   ◆ 故事背景 ◆ ：约 1200 字。分阶段：童年/少年上学/成年（如已成年）或当前阶段（如仍在校）/现在。校园身份重点写当下校园生活。\n   ◆ 喜好厌恶 ◆\n   ◆ 小怪癖 & 隐藏面 ◆\n   ◆ 语言使用规则 ◆ ：必须详细具体。\n       • 标点符号偏好+情绪映射（…… = 无语/吃醋）\n       • 语气词使用情境\n       • 回复长度与节奏\n       • 特殊表达习惯\n       • 自定义细则\n   ◆ 日程参考 ◆ ：工作日/周末两栏。末尾必须附以下使用说明（原文输出）：\n       --- 日程使用说明 ---\n       本日程仅作 char 生活节奏的参考底色，不是必须严格执行的剧本。\n       请把 char 当作真人对待——人的日程并非每天一成不变。\n       · 用户在某时段发消息，不要机械重复"我现在在做X"；\n       · char 可能正按表行事 / 临时变动 / 刚结束 / 因故没去 / 在偷懒；\n       · 让 char 根据情境、情绪、与用户关系自然反应；\n       · 日程是底色，让生活有质感，但不要让它变成念台词。\n   ◆ 一句话标签 ◆\n\n4. 直接输出正文，不要解释、不要 markdown。';
 
 let _current=null;
 
 $('btnGen').onclick=async()=>{
   const f=collectForm();
   if(!f.name){showStatus($('genStatus'),'请至少填写姓名','err');return;}
-  const allText=Object.values(f).join(' ');
-  if(checkBanned(allText)){bannedAlert();return;}
-
+  if(checkBanned(Object.values(f).join(' '))){bannedAlert();return;}
   $('btnGen').disabled=true;
   $('btnGen').innerHTML='<span class="loading"></span>生成中…';
   $('genStatus').classList.remove('show');
   try{
     const brief=buildBrief(f);
-    const userMsg='用户填写的角色标签：\n\n'+brief+'\n\n'+(f.tone?'生成倾向：'+f.tone+'\n\n':'')+'请扩写成完整 char 人设（故事背景务必约 1200 字；外貌速写要包含瞳色/特殊外貌/兽人特征；日程参考末尾必须附使用说明）。';
+    const userMsg='用户标签：\n\n'+brief+'\n\n'+(f.tone?'生成倾向：'+f.tone+'\n\n':'')+'请扩写成完整人设。';
     const txt=await callLLM([{role:'system',content:SYS_MAIN},{role:'user',content:userMsg}]);
     if(!txt)throw new Error('返回为空');
     if(checkBanned(txt)){bannedAlert();return;}
@@ -830,10 +771,10 @@ $('btnGen').onclick=async()=>{
       name:f.name,content:txt,form:f,time:Date.now(),
       chat:[],
       worldbook:[],worldbookPref:'',
-      statusBar:{enabled:false,code:DEFAULT_STATUS_CODE}
+      statusBar:{enabled:false,code:DEFAULT_STATUS_CODE},
+      relations:{centerId:null,nodes:[],edges:[],view:{scale:1,tx:0,ty:0},title:''}
     };
-    autoArchive();
-    renderResult();
+    autoArchive();renderResult();
     showStatus($('genStatus'),'✓ 生成成功，已自动存档','ok');
   }catch(e){showStatus($('genStatus'),'✗ '+e.message,'err');}
   finally{$('btnGen').disabled=false;$('btnGen').innerHTML='✨ 生成完整 char 设定';}
@@ -844,8 +785,7 @@ function autoArchive(){
   const arr=JSON.parse(localStorage.getItem(LS.hist)||'[]');
   if(!_current.id)_current.id=Date.now();
   const idx=arr.findIndex(x=>x.id===_current.id);
-  if(idx>=0)arr[idx]=Object.assign({},_current);
-  else arr.unshift(Object.assign({},_current));
+  if(idx>=0)arr[idx]=Object.assign({},_current);else arr.unshift(Object.assign({},_current));
   localStorage.setItem(LS.hist,JSON.stringify(arr));
 }
 
@@ -860,7 +800,8 @@ function renderResult(){
     '</div>'+
     '<div class="btn-row">'+
       '<button class="ghost" onclick="copyResult()">复制</button>'+
-      '<button class="ghost" onclick="exportTxt(_current)">导出TXT</button>'+
+      '<button class="ghost" onclick="exportTxt(_current)">导出 TXT</button>'+
+      '<button class="ghost" onclick="exportDocx(_current)">导出 DOCX</button>'+
       '<button onclick="autoArchive();showStatus(document.getElementById(\'genStatus\'),\'✓ 已更新存档\',\'ok\')">📥 更新存档</button>'+
     '</div>'+
     renderChat();
@@ -895,13 +836,13 @@ window.sendChat=async()=>{
   _current.chat.push({role:'user',content:msg});$('chatInput').value='';
   renderResult();showStatus($('chatStatus'),'AI 思考中…','');
   try{
-    const sys='你是人设修改助手。当前 char 人设如下：\n\n===== 当前 char 人设 =====\n'+_current.content+'\n===== 结束 =====\n\n用户提出修改意见，你要：\n1. 理解用户意图；\n2. 给出具体清晰的「修改计划」——哪些板块改什么，保持其他不变；\n3. 不要现在就输出新人设全文，只说计划；\n4. 用中文。意见模糊可反问澄清。';
+    const sys='你是人设修改助手。当前 char 人设：\n\n'+_current.content+'\n\n用户提出修改意见，你要：\n1. 理解意图；\n2. 给出具体「修改计划」——哪些板块改什么；\n3. 不要现在就输出新人设全文；\n4. 用中文。';
     const history=(_current.chat||[]).map(m=>({role:m.role==='user'?'user':'assistant',content:m.content}));
     const out=await callLLM([{role:'system',content:sys}].concat(history),{temperature:0.7});
     if(checkBanned(out)){bannedAlert();return;}
     _current.chat.push({role:'assistant',content:out,plan:true});
     autoArchive();renderResult();
-    showStatus($('chatStatus'),'✓ 已给出修改计划，确认后点「应用此计划」','ok');
+    showStatus($('chatStatus'),'✓ 已给出修改计划','ok');
   }catch(e){showStatus($('chatStatus'),'✗ '+e.message,'err');}
 };
 window.applyChat=async()=>{
@@ -909,15 +850,15 @@ window.applyChat=async()=>{
   showStatus($('chatStatus'),'正在应用修改…','');
   try{
     const convo=(_current.chat||[]).map(m=>(m.role==='user'?'【用户】':'【助手】')+m.content).join('\n\n');
-    const sys='你是专业角色设定撰写师。基于【原人设】和【修改对话】，输出修改后的完整 char 人设。\n保留所有 ◆板块◆ 结构（基础档案/外貌速写/性格剖析/穿搭品味/衣橱/故事背景/喜好厌恶/小怪癖 & 隐藏面/语言使用规则/日程参考/一句话标签），仅调整对话中商定要改的部分，其他保持。日程参考末尾的"使用说明"必须保留。直接输出正文，不要解释、不要 markdown。';
-    const user='【原人设】\n'+_current.content+'\n\n【修改对话】\n'+convo+'\n\n请输出修改后的完整人设正文。';
+    const sys='你是角色撰写师。基于【原人设】和【修改对话】，输出修改后的完整人设。保留所有 ◆板块◆ 结构，仅改对话中商定要改的部分。日程参考末尾的"使用说明"必须保留。直接输出正文，不要解释、不要 markdown。';
+    const user='【原人设】\n'+_current.content+'\n\n【修改对话】\n'+convo+'\n\n请输出修改后的完整人设。';
     const out=await callLLM([{role:'system',content:sys},{role:'user',content:user}],{temperature:0.75});
     if(!out)throw new Error('返回为空');
     if(checkBanned(out)){bannedAlert();return;}
     _current.content=out;
-    _current.chat.push({role:'assistant',content:'✓ 已按上述计划应用修改。人设已更新。',plan:false});
+    _current.chat.push({role:'assistant',content:'✓ 已应用修改。',plan:false});
     autoArchive();renderResult();
-    showStatus($('genStatus'),'✓ 已应用修改并重新生成','ok');
+    showStatus($('genStatus'),'✓ 已应用修改','ok');
   }catch(e){showStatus($('chatStatus'),'✗ '+e.message,'err');}
 };
 window.clearChat=()=>{
@@ -931,191 +872,391 @@ function buildCharPicker(){
   let opts='<option value="">— 选择已存档的 char —</option>';
   arr.forEach(it=>{opts+='<option value="'+it.id+'"'+(_current&&_current.id===it.id?' selected':'')+'>'+esc(it.name)+'</option>';});
   const cur=_current?esc(_current.name):'<span style="color:var(--sub);">未选择</span>';
-  return '<div class="char-picker">'+
-    '<div class="cp-name">📌 当前：'+cur+'</div>'+
-    '<select onchange="pickChar(this.value)">'+opts+'</select>'+
-  '</div>';
+  return '<div class="char-picker"><div class="cp-name">📌 当前：'+cur+'</div><select onchange="pickChar(this.value)">'+opts+'</select></div>';
 }
 window.pickChar=function(id){
   if(!id){_current=null;}
   else{
     const arr=JSON.parse(localStorage.getItem(LS.hist)||'[]');
-    const it=arr.find(x=>x.id==id);
-    if(!it)return;
+    const it=arr.find(x=>x.id==id);if(!it)return;
     _current=Object.assign({},it);
     if(!_current.chat)_current.chat=[];
     if(!_current.worldbook)_current.worldbook=[];
     if(!_current.worldbookPref)_current.worldbookPref='';
     if(!_current.statusBar)_current.statusBar={enabled:false,code:DEFAULT_STATUS_CODE};
+    if(!_current.relations)_current.relations={centerId:null,nodes:[],edges:[],view:{scale:1,tx:0,ty:0},title:''};
   }
-  const active=document.querySelector('.tab.active');
-  if(!active)return;
+  const active=document.querySelector('.tab.active');if(!active)return;
   const k=active.dataset.tab;
-  if(k==='wb')renderWBTab();
-  else if(k==='status')renderStatusTab();
+  if(k==='wb')renderWBTab();else if(k==='status')renderStatusTab();else if(k==='rel')renderRelTab();
 };
 
-/* ===== 世界书 Tab ===== */
+/* ===== 世界书 ===== */
 function renderWBTab(){
   const body=$('wbBody');
-  if(!_current){
-    body.innerHTML=buildCharPicker()+'<div class="card"><div class="empty">请先在「创建」中生成一个 char，或从上方下拉选择</div></div>';
-    return;
-  }
+  if(!_current){body.innerHTML=buildCharPicker()+'<div class="card"><div class="empty">请先生成或从上方选择 char</div></div>';return;}
   const it=_current;const list=it.worldbook||[];
   const items=list.length?list.map((w,i)=>
-    '<div class="wb-item">'+
-      '<div class="wb-title">📖 '+esc(w.title)+'</div>'+
-      '<div class="wb-key">🔑 关键词：'+esc(w.keywords||'(无)')+'</div>'+
-      '<div class="wb-content">'+esc(w.content)+'</div>'+
-      '<div class="wb-btns">'+
-        '<button class="ghost" onclick="editWB('+i+')">编辑</button>'+
-        '<button class="danger" onclick="delWB('+i+')">删除</button>'+
-      '</div>'+
-    '</div>'
+    '<div class="wb-item"><div class="wb-title">📖 '+esc(w.title)+'</div><div class="wb-key">🔑 '+esc(w.keywords||'(无)')+'</div><div class="wb-content">'+esc(w.content)+'</div><div class="wb-btns"><button class="ghost" onclick="editWB('+i+')">编辑</button><button class="danger" onclick="delWB('+i+')">删除</button></div></div>'
   ).join(''):'<div class="empty" style="padding:14px;">还没有世界书条目</div>';
-
-  body.innerHTML=
-    buildCharPicker()+
-    '<div class="card">'+
-      '<div class="ctitle">💡 偏好建议（给 AI 的指引）</div>'+
-      '<div class="hint">写下你希望 AI 生成世界书时遵循的偏好。例：char 住在民国上海法租界 / 加入魔法体系 / 重点扩展校园社团。AI 生成与导出时都会参考。</div>'+
-      '<textarea id="wbPrefInput" placeholder="例：背景是末日废土，幸存者聚集在地下城；强调资源稀缺、阶级森严……" style="min-height:80px;margin-top:8px;">'+esc(it.worldbookPref||'')+'</textarea>'+
-      '<div class="btn-row"><button onclick="saveWBPref()">保存偏好</button></div>'+
-      '<div id="wbPrefStatus" class="status"></div>'+
-    '</div>'+
-    '<div class="card">'+
-      '<div class="ctitle">🌐 世界书条目 <span class="badge">'+list.length+'</span></div>'+
-      '<div class="hint">补充和规范 char 所在世界（地点、组织、道具、专有名词、规则等）</div>'+
-      '<div style="margin-top:8px;">'+items+'</div>'+
-      '<div class="btn-row">'+
-        '<button onclick="addWB()">＋ 新建条目</button>'+
-        '<button class="ghost" onclick="aiGenWB()">✨ AI 生成（参考偏好）</button>'+
-      '</div>'+
-      '<div id="wbStatus" class="status"></div>'+
-    '</div>';
+  body.innerHTML=buildCharPicker()+
+    '<div class="card"><div class="ctitle">💡 偏好建议</div><div class="hint">写下希望 AI 生成世界书时遵循的偏好。</div><textarea id="wbPrefInput" placeholder="例：背景是末日废土，幸存者聚集在地下城" style="min-height:80px;margin-top:8px;">'+esc(it.worldbookPref||'')+'</textarea><div class="btn-row"><button onclick="saveWBPref()">保存偏好</button></div><div id="wbPrefStatus" class="status"></div></div>'+
+    '<div class="card"><div class="ctitle">🌐 世界书条目 <span class="badge">'+list.length+'</span></div>'+
+    '<div style="margin-top:8px;">'+items+'</div><div class="btn-row"><button onclick="addWB()">＋ 新建条目</button><button class="ghost" onclick="aiGenWB()">✨ AI 生成</button></div><div id="wbStatus" class="status"></div></div>';
 }
-window.saveWBPref=()=>{
-  if(!_current)return;
-  _current.worldbookPref=$('wbPrefInput').value.trim();
-  autoArchive();
-  showStatus($('wbPrefStatus'),'✓ 偏好已保存','ok');
-};
+window.saveWBPref=()=>{if(!_current)return;_current.worldbookPref=$('wbPrefInput').value.trim();autoArchive();showStatus($('wbPrefStatus'),'✓ 已保存','ok');};
 window.addWB=function(idx){
   if(!_current){alert('请先选择 char');return;}
   const list=_current.worldbook||[];
   const w=(idx===undefined||idx===null||idx<0)?{title:'',keywords:'',content:''}:list[idx];
-  openModal(
-    '<h3>'+(idx===undefined||idx===null||idx<0?'新建':'编辑')+'世界书条目</h3>'+
-    '<label>标题</label><input id="_wb_t" value="'+esc(w.title)+'" placeholder="例：云巅阁" />'+
-    '<label>触发关键词（逗号分隔）</label><input id="_wb_k" value="'+esc(w.keywords)+'" placeholder="例：云巅阁, 阁主" />'+
-    '<label>内容</label><textarea id="_wb_c" style="min-height:140px;">'+esc(w.content)+'</textarea>'+
-    '<div class="btn-row">'+
-      '<button class="ghost" onclick="closeModal()">取消</button>'+
-      '<button onclick="saveWB('+(idx===undefined||idx===null?-1:idx)+')">保存</button>'+
-    '</div>'
-  );
+  openModal('<h3>'+(idx===undefined||idx===null||idx<0?'新建':'编辑')+'世界书条目</h3><label>标题</label><input id="_wb_t" value="'+esc(w.title)+'" /><label>关键词</label><input id="_wb_k" value="'+esc(w.keywords)+'" /><label>内容</label><textarea id="_wb_c" style="min-height:140px;">'+esc(w.content)+'</textarea><div class="btn-row"><button class="ghost" onclick="closeModal()">取消</button><button onclick="saveWB('+(idx===undefined||idx===null?-1:idx)+')">保存</button></div>');
 };
 window.editWB=function(i){addWB(i);};
 window.saveWB=function(i){
-  const title=$('_wb_t').value.trim();
-  if(!title){alert('请填写标题');return;}
+  const title=$('_wb_t').value.trim();if(!title){alert('请填写标题');return;}
   const w={title:title,keywords:$('_wb_k').value.trim(),content:$('_wb_c').value.trim()};
   if(!_current.worldbook)_current.worldbook=[];
   if(i<0)_current.worldbook.push(w);else _current.worldbook[i]=w;
   autoArchive();closeModal();renderWBTab();
 };
-window.delWB=function(i){
-  if(!confirm('删除这个条目？'))return;
-  _current.worldbook.splice(i,1);autoArchive();renderWBTab();
-};
+window.delWB=function(i){if(!confirm('删除？'))return;_current.worldbook.splice(i,1);autoArchive();renderWBTab();};
 window.aiGenWB=async function(){
   if(!_current)return;
   showStatus($('wbStatus'),'AI 生成中…','');
   try{
     const pref=_current.worldbookPref||'';
-    const sys='你是世界观构建师。根据 char 的人设和用户偏好，生成 3-5 条世界书条目（地点/组织/道具/事件/专有名词/规则等）。\n输出严格 JSON：{"entries":[{"title":"","keywords":"关键词1, 关键词2","content":"100-200字"}]}';
-    const userMsg='【char 人设】\n'+_current.content+'\n\n'+(pref?'【用户偏好·重点遵循】\n'+pref+'\n\n':'')+'请生成世界书条目 JSON。';
+    const sys='你是世界观构建师。根据 char 人设和用户偏好，生成 3-5 条世界书条目。\n输出 JSON：{"entries":[{"title":"","keywords":"关键词1, 关键词2","content":"100-200字"}]}';
+    const userMsg='【char 人设】\n'+_current.content+'\n\n'+(pref?'【偏好】\n'+pref+'\n\n':'')+'请输出 JSON。';
     const out=await callLLM([{role:'system',content:sys},{role:'user',content:userMsg}],{temperature:0.85});
     const data=extractJSON(out);
     if(!_current.worldbook)_current.worldbook=[];
     (data.entries||[]).forEach(e=>{if(e.title&&e.content)_current.worldbook.push(e);});
     autoArchive();renderWBTab();
-    showStatus($('wbStatus'),'✓ 已添加条目','ok');
+    showStatus($('wbStatus'),'✓ 已添加','ok');
   }catch(e){showStatus($('wbStatus'),'✗ '+e.message,'err');}
 };
 
-/* ===== 状态栏 Tab ===== */
+/* ===== 状态栏 ===== */
 function renderStatusTab(){
   const body=$('statusBody');
-  if(!_current){
-    body.innerHTML=buildCharPicker()+'<div class="card"><div class="empty">请先在「创建」中生成一个 char，或从上方下拉选择</div></div>';
-    return;
-  }
+  if(!_current){body.innerHTML=buildCharPicker()+'<div class="card"><div class="empty">请先生成或选择 char</div></div>';return;}
   const sb=_current.statusBar||{enabled:false,code:DEFAULT_STATUS_CODE};
-
-  body.innerHTML=
-    buildCharPicker()+
-    '<div class="card">'+
-      '<div class="ctitle">⚙ 启用状态栏</div>'+
-      '<div class="hint" style="margin-bottom:10px;">开启后：状态栏规则会作为 char 人设一部分，导出 TXT 时一同写入。让 char 在每次回复后追加心声/穿着/好感度。关闭则不附加。</div>'+
-      '<label class="toggle">'+
-        '<input type="checkbox" id="sbToggle" '+(sb.enabled?'checked':'')+' onchange="toggleSB(this.checked)" />'+
-        '<span class="tk"></span>'+
-        '<span style="font-size:13px;">'+(sb.enabled?'已启用':'未启用')+'</span>'+
-      '</label>'+
+  body.innerHTML=buildCharPicker()+
+    '<div class="card"><div class="ctitle">⚙ 启用状态栏</div><div class="hint" style="margin-bottom:10px;">开启后规则会作为人设一部分，导出时一同写入。</div><label class="toggle"><input type="checkbox" id="sbToggle" '+(sb.enabled?'checked':'')+' onchange="toggleSB(this.checked)" /><span class="tk"></span><span style="font-size:13px;">'+(sb.enabled?'已启用':'未启用')+'</span></label></div>'+
+    '<div class="card"><div class="ctitle">👁 预览（仿酒馆样式）</div>'+
+      '<div class="sb-preview"><div class="sb-head">❀ 状 态 栏 ❀</div><div class="sb-row"><span class="sb-k">👔 穿着</span><span class="sb-v">白衬衫 + 黑色西装外套</span></div><div class="sb-row"><span class="sb-k">💭 心声</span><span class="sb-v">这家伙今天又在逗我……算了，再陪她待一会儿。</span></div><div class="sb-row"><span class="sb-k">❤️ 好感度</span><span class="sb-v">62/100　↑</span></div><div class="sb-tail">— 常规心声 —</div></div>'+
+      '<div class="sb-preview" style="margin-top:10px;"><div class="sb-head">❀ 状 态 栏 ❀</div><div class="sb-row"><span class="sb-k">👔 穿着</span><span class="sb-v">同上</span></div><div class="sb-row"><span class="sb-k">💭 心声</span><span class="sb-v dark">凭什么，凭什么她笑得那么开心……</span></div><div class="sb-row"><span class="sb-k">❤️ 好感度</span><span class="sb-v">61/100　↓</span></div><div class="sb-tail" style="color:#7d4444;">— 阴暗面触发 —</div></div>'+
     '</div>'+
-    '<div class="card">'+
-      '<div class="ctitle">👁 预览（示例数据，仿酒馆样式）</div>'+
-      '<div class="sb-preview">'+
-        '<div class="sb-head">❀ 状 态 栏 ❀</div>'+
-        '<div class="sb-row"><span class="sb-k">👔 穿着</span><span class="sb-v">白衬衫 + 黑色西装外套，袖扣是银色月牙</span></div>'+
-        '<div class="sb-row"><span class="sb-k">💭 心声</span><span class="sb-v">这家伙今天又在逗我……算了，再陪她待一会儿。</span></div>'+
-        '<div class="sb-row"><span class="sb-k">❤️ 好感度</span><span class="sb-v">62/100　↑</span></div>'+
-        '<div class="sb-tail">— 常规心声 —</div>'+
-      '</div>'+
-      '<div class="sb-preview" style="margin-top:10px;">'+
-        '<div class="sb-head">❀ 状 态 栏 ❀</div>'+
-        '<div class="sb-row"><span class="sb-k">👔 穿着</span><span class="sb-v">同上</span></div>'+
-        '<div class="sb-row"><span class="sb-k">💭 心声</span><span class="sb-v dark">凭什么，凭什么她笑得那么开心，明明前一秒还在跟我撒娇……</span></div>'+
-        '<div class="sb-row"><span class="sb-k">❤️ 好感度</span><span class="sb-v">61/100　↓</span></div>'+
-        '<div class="sb-tail" style="color:#7d4444;">— 阴暗面触发 —</div>'+
-      '</div>'+
-    '</div>'+
-    '<div class="card">'+
-      '<div class="ctitle">📝 状态栏规则代码（导出时附加到人设末尾）</div>'+
-      '<div class="hint">这段文本会被加进导出的 TXT 末尾，作为 AI 在聊天中要遵守的规则。可自由修改样式、字段、规则。</div>'+
-      '<textarea id="sbCode" class="code" style="min-height:340px;">'+esc(sb.code||DEFAULT_STATUS_CODE)+'</textarea>'+
-      '<div class="btn-row">'+
-        '<button onclick="saveSBCode()">保存代码</button>'+
-        '<button class="ghost" onclick="resetSBCode()">↺ 重置默认</button>'+
-        '<button class="ghost" onclick="copySBCode()">复制</button>'+
-      '</div>'+
-      '<div id="sbStatus" class="status"></div>'+
-    '</div>';
+    '<div class="card"><div class="ctitle">📝 状态栏规则代码</div><div class="hint">这段会附加到导出文件末尾。可自由修改。</div><textarea id="sbCode" class="code" style="min-height:340px;">'+esc(sb.code||DEFAULT_STATUS_CODE)+'</textarea><div class="btn-row"><button onclick="saveSBCode()">保存</button><button class="ghost" onclick="resetSBCode()">↺ 重置</button><button class="ghost" onclick="copySBCode()">复制</button></div><div id="sbStatus" class="status"></div></div>';
 }
-window.toggleSB=function(checked){
-  if(!_current)return;
-  if(!_current.statusBar)_current.statusBar={enabled:false,code:DEFAULT_STATUS_CODE};
-  _current.statusBar.enabled=checked;
-  autoArchive();renderStatusTab();
+window.toggleSB=function(checked){if(!_current)return;if(!_current.statusBar)_current.statusBar={enabled:false,code:DEFAULT_STATUS_CODE};_current.statusBar.enabled=checked;autoArchive();renderStatusTab();};
+window.saveSBCode=function(){if(!_current)return;if(!_current.statusBar)_current.statusBar={enabled:false,code:DEFAULT_STATUS_CODE};_current.statusBar.code=$('sbCode').value;autoArchive();showStatus($('sbStatus'),'✓ 已保存','ok');};
+window.resetSBCode=function(){if(!confirm('重置？'))return;_current.statusBar.code=DEFAULT_STATUS_CODE;autoArchive();renderStatusTab();};
+window.copySBCode=function(){navigator.clipboard.writeText($('sbCode').value).then(()=>showStatus($('sbStatus'),'✓ 已复制','ok'));};
+
+/* ===== 关系网 ===== */
+let selectedNodeId=null;
+function newNodeId(){return 'n'+Date.now()+Math.floor(Math.random()*1000);}
+
+function renderRelTab(){
+  const body=$('relBody');
+  if(!_current){body.innerHTML=buildCharPicker()+'<div class="card"><div class="empty">请先生成或从上方选择 char</div></div>';return;}
+  if(!_current.relations)_current.relations={centerId:null,nodes:[],edges:[],view:{scale:1,tx:0,ty:0},title:''};
+  body.innerHTML=buildCharPicker()+
+    '<div class="card"><div class="ctitle">👥 角色关系网</div>'+
+      '<div class="hint">基于当前 char 的人设自动生成关系网。可拖动节点、AI 扩展子关系、手动编辑。导出时会作为人设的一部分一起写入。</div>'+
+      '<label style="margin-top:8px;">补充提示（可选）</label>'+
+      '<input id="relHint" placeholder="例：以校园为主线 / 重点扩展家族" />'+
+      '<label>user 人设（可选，提供后关系会更精准）</label>'+
+      '<label class="file-btn" for="relUserFile">📄 选择 user 人设 (txt/docx/md)<input type="file" id="relUserFile" accept=".txt,.docx,.md,text/plain" /></label>'+
+      '<div id="relUserName" class="hint" style="margin-top:4px;"></div>'+
+      '<div class="btn-row">'+
+        '<button onclick="genRelMap()">✨ AI 生成关系网</button>'+
+        '<button class="ghost" onclick="clearRelMap()">🗑 清空关系网</button>'+
+      '</div>'+
+      '<div id="relStatus" class="status"></div>'+
+    '</div>'+
+    '<div class="card" style="padding:10px;">'+
+      '<div class="canvas-wrap" id="canvasWrap">'+
+        '<div class="canvas-toolbar">'+
+          '<button onclick="zoomBy(1.2)">＋</button>'+
+          '<button onclick="zoomBy(0.83)">－</button>'+
+          '<button onclick="resetView()">⟲</button>'+
+          '<button onclick="addManualNode()">＋NPC</button>'+
+        '</div>'+
+        '<div class="canvas-info" id="canvasInfo">空</div>'+
+        '<div class="canvas-inner" id="canvasInner">'+
+          '<svg class="canvas-svg" id="canvasSvg"></svg>'+
+          '<div id="nodeLayer"></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="hint" style="margin-top:6px;">拖动节点调整位置 · 单击节点显示操作 · 拖动空白可平移</div>'+
+    '</div>';
+  // 绑定 user 文件上传
+  $('relUserFile').onchange=async function(e){
+    const f=e.target.files[0];if(!f)return;
+    $('relUserName').textContent='读取中…';
+    try{
+      const t=await readFileSmart(f);
+      if(checkBanned(t)){bannedAlert();return;}
+      _relUserText=t;
+      $('relUserName').textContent='✓ '+f.name+'（'+t.length+' 字符）';
+    }catch(err){$('relUserName').textContent='读取失败：'+err.message;}
+  };
+  setTimeout(renderCanvas,50);
+}
+
+let _relUserText='';
+
+window.genRelMap=async()=>{
+  if(!_current||!_current.content){alert('需要 char 人设');return;}
+  const hint=$('relHint').value.trim();
+  showStatus($('relStatus'),'AI 分析中…','');
+  try{
+    const sys='你是角色关系网构建师。分析 char 人设中提到的所有人物，构建关系网。\n严格输出 JSON：\n{\n  "center":{"name":"主角","role":"主角","desc":"一句话描述"},\n  "relations":[{"name":"NPC","role":"与主角关系","desc":"30-80字描述"}]\n}\n要求：\n· center 取自 char 人设主角；\n· 生成 5-10 个最相关人物；\n· 如有 user 人设，user 必须为 relations 第一个，role 写明与 char 实际关系；\n· 严格基于人设中提到的人，不瞎编重要人物；\n· desc 要生动。';
+    let userMsg='【char 人设】\n'+_current.content.slice(0,8000);
+    if(_relUserText.trim())userMsg+='\n\n【user 人设】\n'+_relUserText.slice(0,4000);
+    if(hint)userMsg+='\n\n【补充提示】\n'+hint;
+    userMsg+='\n\n请输出关系网 JSON。';
+    const out=await callLLM([{role:'system',content:sys},{role:'user',content:userMsg}],{temperature:0.75});
+    if(checkBanned(out)){bannedAlert();return;}
+    const data=extractJSON(out);
+    const wrap=$('canvasWrap');
+    const W=wrap.clientWidth,H=wrap.clientHeight;
+    const cx=W/2,cy=H/2;
+    const center={id:newNodeId(),name:data.center.name||_current.name,role:data.center.role||'主角',desc:data.center.desc||'',x:cx,y:cy};
+    const nodes=[center];const edges=[];
+    const rel=data.relations||[];const N=rel.length;
+    const R=Math.min(W,H)*0.36;
+    rel.forEach((r,i)=>{
+      const a=(i/N)*Math.PI*2-Math.PI/2;
+      nodes.push({id:newNodeId(),name:r.name||'NPC',role:r.role||'',desc:r.desc||'',
+        x:cx+R*Math.cos(a),y:cy+R*Math.sin(a)});
+      edges.push({from:center.id,to:nodes[nodes.length-1].id,label:r.role||''});
+    });
+    _current.relations={centerId:center.id,nodes:nodes,edges:edges,view:{scale:1,tx:0,ty:0},title:_current.name+'的关系网'};
+    autoArchive();renderCanvas();
+    showStatus($('relStatus'),'✓ 已生成 '+rel.length+' 个关系','ok');
+  }catch(e){showStatus($('relStatus'),'✗ '+e.message,'err');}
 };
-window.saveSBCode=function(){
+
+window.clearRelMap=()=>{
   if(!_current)return;
-  if(!_current.statusBar)_current.statusBar={enabled:false,code:DEFAULT_STATUS_CODE};
-  _current.statusBar.code=$('sbCode').value;
+  if(!confirm('清空关系网？'))return;
+  _current.relations={centerId:null,nodes:[],edges:[],view:{scale:1,tx:0,ty:0},title:''};
+  selectedNodeId=null;closeNA();autoArchive();renderCanvas();
+};
+
+function renderCanvas(){
+  if(!_current||!_current.relations)return;
+  const r=_current.relations;
+  const wrap=$('canvasWrap');if(!wrap)return;
+  const layer=$('nodeLayer');const svg=$('canvasSvg');
+  const W=wrap.clientWidth,H=wrap.clientHeight;
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  $('canvasInner').style.transform='translate('+r.view.tx+'px,'+r.view.ty+'px) scale('+r.view.scale+')';
+  redrawEdges();
+  layer.innerHTML='';
+  r.nodes.forEach(n=>{
+    const div=document.createElement('div');
+    div.className='node'+(n.id===r.centerId?' center':'')+(n.id===selectedNodeId?' selected':'');
+    div.style.left=n.x+'px';div.style.top=n.y+'px';div.dataset.id=n.id;
+    div.innerHTML='<div class="nname">'+esc(n.name)+'</div>'+(n.role?'<div class="nrole">'+esc(n.role)+'</div>':'');
+    bindNode(div,n);
+    layer.appendChild(div);
+  });
+  $('canvasInfo').textContent=r.nodes.length?(r.nodes.length+' 节点 · '+r.edges.length+' 关系'):'空';
+}
+function redrawEdges(){
+  const svg=$('canvasSvg');if(!svg||!_current||!_current.relations)return;
+  const r=_current.relations;
+  let html='';
+  r.edges.forEach(e=>{
+    const a=r.nodes.find(n=>n.id===e.from);const b=r.nodes.find(n=>n.id===e.to);
+    if(!a||!b)return;
+    html+='<line x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'"/>';
+    if(e.label){
+      const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+      const w=e.label.length*7+12;
+      html+='<rect class="label-bg" x="'+(mx-w/2)+'" y="'+(my-8)+'" width="'+w+'" height="14" rx="6"/>';
+      html+='<text class="edge-label" x="'+mx+'" y="'+(my+3)+'" text-anchor="middle">'+esc(e.label)+'</text>';
+    }
+  });
+  svg.innerHTML=html;
+}
+function bindNode(el,node){
+  let dragging=false,moved=false,sx=0,sy=0,ox=0,oy=0;
+  el.addEventListener('pointerdown',e=>{
+    e.stopPropagation();
+    dragging=true;moved=false;
+    sx=e.clientX;sy=e.clientY;ox=node.x;oy=node.y;
+    try{el.setPointerCapture(e.pointerId);}catch(_){}
+  });
+  el.addEventListener('pointermove',e=>{
+    if(!dragging)return;
+    const sc=_current.relations.view.scale;
+    const dx=(e.clientX-sx)/sc,dy=(e.clientY-sy)/sc;
+    if(Math.abs(dx)>3||Math.abs(dy)>3)moved=true;
+    node.x=ox+dx;node.y=oy+dy;
+    el.style.left=node.x+'px';el.style.top=node.y+'px';
+    redrawEdges();
+  });
+  el.addEventListener('pointerup',e=>{
+    if(!dragging)return;dragging=false;
+    if(!moved)selectNode(node.id);else autoArchive();
+  });
+  el.addEventListener('pointercancel',()=>{dragging=false;});
+}
+function selectNode(id){
+  selectedNodeId=id;
+  document.querySelectorAll('.node').forEach(d=>d.classList.toggle('selected',d.dataset.id===id));
+  const n=_current.relations.nodes.find(x=>x.id===id);if(!n){closeNA();return;}
+  $('naName').textContent=n.name;$('naRole').textContent=n.role||'';
+  $('naDesc').textContent=n.desc||'(无描述)';
+  $('nodeActions').classList.add('show');
+}
+window.closeNA=()=>{$('nodeActions').classList.remove('show');selectedNodeId=null;document.querySelectorAll('.node.selected').forEach(d=>d.classList.remove('selected'));};
+
+// 画布平移
+document.addEventListener('pointerdown',function(e){
+  const wrap=$('canvasWrap');if(!wrap)return;
+  if(!wrap.contains(e.target))return;
+  if(e.target.closest('.node')||e.target.closest('.canvas-toolbar')||e.target.closest('.canvas-info'))return;
+  let panning=true,sx=e.clientX,sy=e.clientY;
+  const r=_current.relations;
+  const otx=r.view.tx,oty=r.view.ty;
+  closeNA();
+  function mv(ev){if(!panning)return;r.view.tx=otx+(ev.clientX-sx);r.view.ty=oty+(ev.clientY-sy);$('canvasInner').style.transform='translate('+r.view.tx+'px,'+r.view.ty+'px) scale('+r.view.scale+')';}
+  function up(){panning=false;document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);autoArchive();}
+  document.addEventListener('pointermove',mv);
+  document.addEventListener('pointerup',up);
+});
+
+window.zoomBy=function(k){
+  if(!_current)return;
+  _current.relations.view.scale=Math.min(2.5,Math.max(0.4,_current.relations.view.scale*k));
+  $('canvasInner').style.transform='translate('+_current.relations.view.tx+'px,'+_current.relations.view.ty+'px) scale('+_current.relations.view.scale+')';
   autoArchive();
-  showStatus($('sbStatus'),'✓ 代码已保存','ok');
 };
-window.resetSBCode=function(){
-  if(!confirm('恢复为默认状态栏代码？'))return;
-  if(!_current)return;
-  _current.statusBar.code=DEFAULT_STATUS_CODE;
-  autoArchive();renderStatusTab();
+window.resetView=function(){if(!_current)return;_current.relations.view={scale:1,tx:0,ty:0};renderCanvas();};
+
+window.editNode=()=>{
+  const n=_current.relations.nodes.find(x=>x.id===selectedNodeId);if(!n)return;
+  openModal('<h3>编辑节点</h3><label>姓名</label><input id="_nn" value="'+esc(n.name)+'" /><label>关系/角色</label><input id="_nr" value="'+esc(n.role||'')+'" /><label>描述</label><textarea id="_nd" style="min-height:100px;">'+esc(n.desc||'')+'</textarea><div class="btn-row"><button class="ghost" onclick="closeModal()">取消</button><button onclick="saveNodeEdit()">保存</button></div>');
 };
-window.copySBCode=function(){
-  navigator.clipboard.writeText($('sbCode').value).then(()=>showStatus($('sbStatus'),'✓ 已复制','ok'));
+window.saveNodeEdit=()=>{
+  const n=_current.relations.nodes.find(x=>x.id===selectedNodeId);if(!n)return;
+  n.name=$('_nn').value.trim()||n.name;
+  n.role=$('_nr').value.trim();
+  n.desc=$('_nd').value.trim();
+  _current.relations.edges.forEach(e=>{if(e.to===n.id)e.label=n.role;});
+  closeModal();autoArchive();renderCanvas();selectNode(n.id);
 };
+window.deleteNode=()=>{
+  if(!selectedNodeId)return;
+  if(selectedNodeId===_current.relations.centerId){alert('不能删除中心节点');return;}
+  if(!confirm('删除该节点及其子节点？'))return;
+  const r=_current.relations;
+  const toDel=new Set([selectedNodeId]);let ch=true;
+  while(ch){ch=false;r.edges.forEach(e=>{if(toDel.has(e.from)&&!toDel.has(e.to)){toDel.add(e.to);ch=true;}});}
+  r.nodes=r.nodes.filter(n=>!toDel.has(n.id));
+  r.edges=r.edges.filter(e=>!toDel.has(e.from)&&!toDel.has(e.to));
+  closeNA();autoArchive();renderCanvas();
+};
+window.setCenter=()=>{if(!selectedNodeId)return;_current.relations.centerId=selectedNodeId;autoArchive();renderCanvas();selectNode(selectedNodeId);};
+window.addChildNode=()=>{
+  if(!selectedNodeId)return;
+  const parent=_current.relations.nodes.find(n=>n.id===selectedNodeId);if(!parent)return;
+  openModal('<h3>新建子 NPC（连到「'+esc(parent.name)+'」）</h3><label>姓名</label><input id="_cn" placeholder="必填" /><label>关系/角色</label><input id="_cr" /><label>描述</label><textarea id="_cd" style="min-height:80px;"></textarea><div class="btn-row"><button class="ghost" onclick="closeModal()">取消</button><button onclick="saveAddChild()">添加</button></div>');
+};
+window.saveAddChild=()=>{
+  const parent=_current.relations.nodes.find(n=>n.id===selectedNodeId);if(!parent)return;
+  const name=$('_cn').value.trim();if(!name){alert('请填写姓名');return;}
+  const role=$('_cr').value.trim();const desc=$('_cd').value.trim();
+  const ang=Math.random()*Math.PI*2;
+  const n={id:newNodeId(),name:name,role:role,desc:desc,x:parent.x+120*Math.cos(ang),y:parent.y+120*Math.sin(ang)};
+  _current.relations.nodes.push(n);
+  _current.relations.edges.push({from:parent.id,to:n.id,label:role});
+  closeModal();autoArchive();renderCanvas();
+};
+window.addManualNode=()=>{
+  if(!_current||!_current.relations.nodes.length){alert('请先生成关系网');return;}
+  const c=_current.relations.nodes.find(n=>n.id===_current.relations.centerId)||_current.relations.nodes[0];
+  selectedNodeId=c.id;addChildNode();
+};
+window.expandNode=()=>{
+  if(!selectedNodeId||!_current||!_current.content){alert('需要 char 人设');return;}
+  const node=_current.relations.nodes.find(x=>x.id===selectedNodeId);if(!node)return;
+  openModal('<h3>AI 扩展「'+esc(node.name)+'」的关系</h3><label>方向提示（可选）</label><textarea id="_eh" style="min-height:80px;" placeholder="例：扩展ta的家庭成员"></textarea><div class="hint">基于 char 人设和该 NPC 信息生成 3-5 个相关人物。</div><div class="btn-row"><button class="ghost" onclick="closeModal()">取消</button><button onclick="doExpand()">生成</button></div>');
+};
+window.doExpand=async()=>{
+  const node=_current.relations.nodes.find(x=>x.id===selectedNodeId);if(!node)return;
+  const hint=$('_eh').value.trim();closeModal();
+  showStatus($('relStatus'),'AI 扩展中…','');
+  try{
+    const exist=_current.relations.nodes.map(n=>n.name).join('、');
+    const sys='你是关系网扩展师。基于 char 人设和"焦点 NPC"现有信息，为该 NPC 生成 3-5 个紧密相关的人。\n输出 JSON：{"relations":[{"name":"","role":"与焦点NPC的关系","desc":"30-80字"}]}\n注意：1. 不要重复已存在节点：'+exist+' 2. 关系是与"焦点 NPC"的，不是与主角的；3. 优先从 char 人设挖掘。';
+    const userMsg='【char 人设】\n'+_current.content.slice(0,6000)+'\n\n【焦点 NPC】\n姓名：'+node.name+'\n关系：'+(node.role||'')+'\n描述：'+(node.desc||'')+'\n\n'+(hint?'【方向提示】\n'+hint+'\n\n':'')+'请输出 JSON。';
+    const out=await callLLM([{role:'system',content:sys},{role:'user',content:userMsg}],{temperature:0.85});
+    if(checkBanned(out)){bannedAlert();return;}
+    const data=extractJSON(out);
+    const rel=data.relations||[];const N=rel.length;
+    rel.forEach((r,i)=>{
+      const a=(i/N)*Math.PI*2;const R=130;
+      const n={id:newNodeId(),name:r.name||'NPC',role:r.role||'',desc:r.desc||'',
+        x:node.x+R*Math.cos(a),y:node.y+R*Math.sin(a)};
+      _current.relations.nodes.push(n);
+      _current.relations.edges.push({from:node.id,to:n.id,label:r.role||''});
+    });
+    autoArchive();renderCanvas();
+    showStatus($('relStatus'),'✓ 已扩展 '+N+' 个关系','ok');
+  }catch(e){showStatus($('relStatus'),'✗ '+e.message,'err');}
+};
+
+/* ===== 关系网文字化 ===== */
+function buildRelationsText(r){
+  if(!r||!r.nodes||!r.nodes.length)return '';
+  let out='';
+  const center=r.nodes.find(n=>n.id===r.centerId)||r.nodes[0];
+  if(center){
+    out+='【中心人物】'+center.name+(center.role?'（'+center.role+'）':'')+'\n';
+    if(center.desc)out+=center.desc+'\n';
+    out+='\n';
+  }
+  // 直接关系
+  const direct=r.edges.filter(e=>e.from===center.id);
+  if(direct.length){
+    out+='─── 直接关系 ───\n\n';
+    direct.forEach((e,i)=>{
+      const n=r.nodes.find(x=>x.id===e.to);if(!n)return;
+      out+=(i+1)+'. '+n.name+'（'+(n.role||'关系不明')+'）\n';
+      if(n.desc)out+='   '+n.desc+'\n';
+      out+='\n';
+    });
+  }
+  // 二级关系
+  const indirect=r.edges.filter(e=>e.from!==center.id);
+  if(indirect.length){
+    out+='─── 二级关系网 ───\n\n';
+    indirect.forEach(e=>{
+      const a=r.nodes.find(x=>x.id===e.from);const b=r.nodes.find(x=>x.id===e.to);
+      if(!a||!b)return;
+      out+=a.name+' → '+b.name+'（'+(b.role||'关系不明')+'）\n';
+      if(b.desc)out+='   '+b.desc+'\n';
+      out+='\n';
+    });
+  }
+  // 孤立节点（防漏）
+  const linked=new Set();
+  r.edges.forEach(e=>{linked.add(e.from);linked.add(e.to);});
+  linked.add(center.id);
+  const orphan=r.nodes.filter(n=>!linked.has(n.id));
+  if(orphan.length){
+    out+='─── 其他人物 ───\n\n';
+    orphan.forEach(n=>{out+='· '+n.name+'（'+(n.role||'')+'）\n'+(n.desc?'   '+n.desc+'\n':'')+'\n';});
+  }
+  return out;
+}
 
 /* ===== 导出 ===== */
 function buildExportText(it){
@@ -1129,9 +1270,11 @@ function buildExportText(it){
   }
   if(it.worldbook&&it.worldbook.length){
     out+='\n══════════════════════\n           🌐 世 界 书\n══════════════════════\n\n';
-    it.worldbook.forEach((w,i)=>{
-      out+='【'+(i+1)+'】'+w.title+'\n关键词：'+(w.keywords||'(无)')+'\n'+w.content+'\n\n';
-    });
+    it.worldbook.forEach((w,i)=>{out+='【'+(i+1)+'】'+w.title+'\n关键词：'+(w.keywords||'(无)')+'\n'+w.content+'\n\n';});
+  }
+  if(it.relations&&it.relations.nodes&&it.relations.nodes.length){
+    out+='\n══════════════════════\n           👥 角 色 关 系 网\n══════════════════════\n\n';
+    out+=buildRelationsText(it.relations);
   }
   if(it.statusBar&&it.statusBar.enabled&&it.statusBar.code){
     out+='\n══════════════════════\n           📊 状 态 栏 规 则\n══════════════════════\n\n';
@@ -1139,10 +1282,7 @@ function buildExportText(it){
   }
   return out;
 }
-window.copyResult=()=>{
-  if(!_current)return;
-  navigator.clipboard.writeText(buildExportText(_current)).then(()=>showStatus($('genStatus'),'✓ 已复制','ok'));
-};
+window.copyResult=()=>{if(!_current)return;navigator.clipboard.writeText(buildExportText(_current)).then(()=>showStatus($('genStatus'),'✓ 已复制','ok'));};
 window.exportTxt=function(it){
   const text=buildExportText(it);
   const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
@@ -1153,27 +1293,83 @@ window.exportTxt=function(it){
   setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},100);
 };
 
+/* DOCX 生成 */
+function xmlEsc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));}
+async function buildDocxBlob(text){
+  const lines=text.split('\n');
+  let body='';
+  lines.forEach(line=>{
+    if(line===''){body+='<w:p/>';return;}
+    const isCenterLine=/═{3,}/.test(line);
+    const isSection=/◆.+◆/.test(line);
+    const isSub=/───.+───/.test(line);
+    const bold=isCenterLine||isSection||isSub;
+    const center=isCenterLine;
+    body+='<w:p>';
+    if(center)body+='<w:pPr><w:jc w:val="center"/></w:pPr>';
+    body+='<w:r>';
+    if(bold)body+='<w:rPr><w:b/></w:rPr>';
+    body+='<w:t xml:space="preserve">'+xmlEsc(line)+'</w:t></w:r></w:p>';
+  });
+  const documentXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'+
+    '<w:body>'+body+
+    '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr>'+
+    '</w:body></w:document>';
+  const contentTypes='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'+
+    '<Default Extension="xml" ContentType="application/xml"/>'+
+    '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'+
+    '</Types>';
+  const rels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>'+
+    '</Relationships>';
+  const docRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>';
+  const zip=new JSZip();
+  zip.file('[Content_Types].xml',contentTypes);
+  zip.file('_rels/.rels',rels);
+  zip.file('word/document.xml',documentXml);
+  zip.file('word/_rels/document.xml.rels',docRels);
+  return await zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+}
+window.exportDocx=async function(it){
+  try{
+    showStatus($('genStatus'),'生成 DOCX 中…','');
+    const text=buildExportText(it);
+    const blob=await buildDocxBlob(text);
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='177のchar生成器_'+it.name+'.docx';
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},100);
+    showStatus($('genStatus'),'✓ 已导出 DOCX','ok');
+  }catch(e){showStatus($('genStatus'),'✗ '+e.message,'err');}
+};
+
 /* ===== 历史 ===== */
 function renderHist(){
   const arr=JSON.parse(localStorage.getItem(LS.hist)||'[]');
   const box=$('histList');
   if(!arr.length){box.innerHTML='<div class="empty">还没有存档</div>';return;}
   box.innerHTML=arr.map(it=>
-    '<div class="hist-item">'+
-      '<div class="hname">'+esc(it.name)+
-        (it.worldbook&&it.worldbook.length?'<span class="badge">🌐'+it.worldbook.length+'</span>':'')+
-        (it.statusBar&&it.statusBar.enabled?'<span class="badge">📊</span>':'')+
-        (it.chat&&it.chat.length?'<span class="badge">💬'+it.chat.length+'</span>':'')+
-      '</div>'+
-      '<div class="hmeta">'+new Date(it.time).toLocaleString('zh-CN')+'</div>'+
-      '<div class="hbtns">'+
-        '<button class="ghost" onclick="loadHist('+it.id+')">载入编辑</button>'+
-        '<button class="ghost" onclick="viewHist('+it.id+')">查看</button>'+
-        '<button class="ghost" onclick="editHistName('+it.id+')">改名</button>'+
-        '<button class="ghost" onclick="exportHistById('+it.id+')">导出</button>'+
-        '<button class="danger" onclick="delHist('+it.id+')">删除</button>'+
-      '</div>'+
-    '</div>'
+    '<div class="hist-item"><div class="hname">'+esc(it.name)+
+      (it.worldbook&&it.worldbook.length?'<span class="badge">🌐'+it.worldbook.length+'</span>':'')+
+      (it.relations&&it.relations.nodes&&it.relations.nodes.length?'<span class="badge">👥'+it.relations.nodes.length+'</span>':'')+
+      (it.statusBar&&it.statusBar.enabled?'<span class="badge">📊</span>':'')+
+      (it.chat&&it.chat.length?'<span class="badge">💬'+it.chat.length+'</span>':'')+
+    '</div>'+
+    '<div class="hmeta">'+new Date(it.time).toLocaleString('zh-CN')+'</div>'+
+    '<div class="hbtns">'+
+      '<button class="ghost" onclick="loadHist('+it.id+')">载入</button>'+
+      '<button class="ghost" onclick="viewHist('+it.id+')">查看</button>'+
+      '<button class="ghost" onclick="editHistName('+it.id+')">改名</button>'+
+      '<button class="ghost" onclick="exportHistById('+it.id+',\'txt\')">TXT</button>'+
+      '<button class="ghost" onclick="exportHistById('+it.id+',\'docx\')">DOCX</button>'+
+      '<button class="danger" onclick="delHist('+it.id+')">删除</button>'+
+    '</div></div>'
   ).join('');
 }
 window.loadHist=function(id){
@@ -1184,6 +1380,7 @@ window.loadHist=function(id){
   if(!_current.worldbook)_current.worldbook=[];
   if(!_current.worldbookPref)_current.worldbookPref='';
   if(!_current.statusBar)_current.statusBar={enabled:false,code:DEFAULT_STATUS_CODE};
+  if(!_current.relations)_current.relations={centerId:null,nodes:[],edges:[],view:{scale:1,tx:0,ty:0},title:''};
   if(it.form)fillForm(it.form);
   document.querySelector('.tab[data-tab="make"]').click();
   renderResult();
@@ -1193,37 +1390,19 @@ window.viewHist=function(id){
   const arr=JSON.parse(localStorage.getItem(LS.hist)||'[]');
   const it=arr.find(x=>x.id===id);if(!it)return;
   let extra='';
-  if(it.worldbookPref&&it.worldbookPref.trim()){
-    extra+='<div style="margin-top:14px;font-weight:600;color:var(--accent-d);">🌐 世界设定偏好</div>';
-    extra+='<div style="white-space:pre-wrap;font-size:13px;background:var(--soft);padding:8px;border-radius:8px;">'+esc(it.worldbookPref)+'</div>';
-  }
-  if(it.worldbook&&it.worldbook.length){
-    extra+='<div style="margin-top:14px;font-weight:600;color:var(--accent-d);">🌐 世界书</div>';
-    extra+=it.worldbook.map(w=>'<div class="wb-item"><div class="wb-title">'+esc(w.title)+'</div><div class="wb-key">🔑 '+esc(w.keywords||'')+'</div><div class="wb-content">'+esc(w.content)+'</div></div>').join('');
+  if(it.relations&&it.relations.nodes&&it.relations.nodes.length){
+    extra+='<div style="margin-top:14px;font-weight:600;color:var(--accent-d);">👥 关系网</div>';
+    extra+='<div style="white-space:pre-wrap;font-size:13px;background:var(--soft);padding:8px;border-radius:8px;">'+esc(buildRelationsText(it.relations))+'</div>';
   }
   if(it.statusBar&&it.statusBar.enabled){
     extra+='<div style="margin-top:14px;font-weight:600;color:var(--accent-d);">📊 状态栏（已启用）</div>';
-    extra+='<div style="white-space:pre-wrap;font-size:12px;background:var(--soft);padding:8px;border-radius:8px;font-family:monospace;">'+esc(it.statusBar.code||'')+'</div>';
   }
-  openModal(
-    '<h3>'+esc(it.name)+'</h3>'+
-    '<div class="user-card" style="max-height:50vh;overflow-y:auto;">'+esc(it.content)+'</div>'+
-    extra+
-    '<div class="btn-row">'+
-      '<button class="ghost" onclick="closeModal()">关闭</button>'+
-      '<button onclick="closeModal();exportHistById('+it.id+')">导出TXT</button>'+
-      '<button onclick="closeModal();editHistContent('+it.id+')">编辑正文</button>'+
-    '</div>'
-  );
+  openModal('<h3>'+esc(it.name)+'</h3><div class="user-card" style="max-height:50vh;overflow-y:auto;">'+esc(it.content)+'</div>'+extra+'<div class="btn-row"><button class="ghost" onclick="closeModal()">关闭</button><button onclick="closeModal();exportHistById('+it.id+',\'txt\')">导出TXT</button><button onclick="closeModal();exportHistById('+it.id+',\'docx\')">导出DOCX</button><button onclick="closeModal();editHistContent('+it.id+')">编辑正文</button></div>');
 };
 window.editHistContent=function(id){
   const arr=JSON.parse(localStorage.getItem(LS.hist)||'[]');
   const it=arr.find(x=>x.id===id);if(!it)return;
-  openModal(
-    '<h3>编辑 '+esc(it.name)+' 正文</h3>'+
-    '<textarea id="_edit" style="min-height:300px;">'+esc(it.content)+'</textarea>'+
-    '<div class="btn-row"><button class="ghost" onclick="closeModal()">取消</button><button onclick="saveHistContent('+id+')">保存</button></div>'
-  );
+  openModal('<h3>编辑 '+esc(it.name)+' 正文</h3><textarea id="_edit" style="min-height:300px;">'+esc(it.content)+'</textarea><div class="btn-row"><button class="ghost" onclick="closeModal()">取消</button><button onclick="saveHistContent('+id+')">保存</button></div>');
 };
 window.saveHistContent=function(id){
   const arr=JSON.parse(localStorage.getItem(LS.hist)||'[]');
@@ -1234,17 +1413,17 @@ window.saveHistContent=function(id){
 window.editHistName=function(id){
   const arr=JSON.parse(localStorage.getItem(LS.hist)||'[]');
   const it=arr.find(x=>x.id===id);if(!it)return;
-  const n=prompt('新名称：',it.name);
-  if(!n||!n.trim())return;
+  const n=prompt('新名称：',it.name);if(!n||!n.trim())return;
   it.name=n.trim();if(it.form)it.form.name=n.trim();
   localStorage.setItem(LS.hist,JSON.stringify(arr));renderHist();
 };
-window.exportHistById=function(id){
+window.exportHistById=function(id,fmt){
   const arr=JSON.parse(localStorage.getItem(LS.hist)||'[]');
-  const it=arr.find(x=>x.id===id);if(it)exportTxt(it);
+  const it=arr.find(x=>x.id===id);if(!it)return;
+  if(fmt==='docx')exportDocx(it);else exportTxt(it);
 };
 window.delHist=function(id){
-  if(!confirm('删除该存档？'))return;
+  if(!confirm('删除？'))return;
   let arr=JSON.parse(localStorage.getItem(LS.hist)||'[]');
   arr=arr.filter(x=>x.id!==id);
   localStorage.setItem(LS.hist,JSON.stringify(arr));renderHist();
@@ -1254,7 +1433,6 @@ function openModal(html){$('modalBox').innerHTML=html;$('modalMask').classList.a
 window.closeModal=function(){$('modalMask').classList.remove('show');};
 $('modalMask').onclick=function(e){if(e.target===$('modalMask'))closeModal();};
 
-/* init */
 loadCfg();loadPresets();renderChips();
 </script>
 </body>
