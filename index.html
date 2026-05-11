@@ -47,7 +47,6 @@
   input:focus,select:focus,textarea:focus{border-color:var(--accent);background:#fff;}
   textarea{resize:vertical;min-height:55px;overflow-y:auto;}
   textarea.compact{min-height:38px;}
-  textarea.code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.6;}
   input{text-overflow:ellipsis;}
   .row{display:flex;gap:8px;}
   .row > *{flex:1;min-width:0;}
@@ -62,6 +61,10 @@
   button.danger{background:transparent;color:var(--err);border:1px solid var(--line);}
   .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
   .btn-row button{flex:1;min-width:80px;}
+
+  .name-row{display:flex;gap:8px;align-items:stretch;}
+  .name-row input{flex:1;}
+  .name-row button{flex:0 0 auto;min-width:48px;padding:9px 12px;font-size:16px;}
 
   .hint{font-size:11px;color:var(--sub);margin-top:4px;}
   .status{font-size:12px;margin-top:8px;padding:8px 10px;border-radius:8px;display:none;}
@@ -145,28 +148,6 @@
   .wb-item .wb-btns{margin-top:6px;display:flex;gap:6px;}
   .wb-item .wb-btns button{padding:4px 10px;font-size:11px;flex:0 0 auto;}
 
-  .sb-preview{background:linear-gradient(135deg,#fffaf0,#f5e8d0);
-    border:1px solid var(--accent);border-radius:12px;padding:14px 16px;
-    box-shadow:0 1px 6px rgba(157,123,91,.15);}
-  .sb-preview .sb-head{text-align:center;font-size:12px;color:var(--accent-d);
-    letter-spacing:3px;margin-bottom:10px;border-bottom:1px dashed var(--line);padding-bottom:8px;}
-  .sb-row{display:flex;justify-content:space-between;align-items:flex-start;
-    padding:5px 0;font-size:13px;gap:10px;}
-  .sb-row .sb-k{color:var(--accent-d);font-weight:600;flex:0 0 auto;}
-  .sb-row .sb-v{color:var(--ink);text-align:right;flex:1;line-height:1.6;}
-  .sb-row .sb-v.dark{color:#7d4444;font-style:italic;}
-  .sb-tail{text-align:center;font-size:11px;color:var(--sub);margin-top:8px;
-    border-top:1px dashed var(--line);padding-top:6px;letter-spacing:2px;}
-
-  .toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
-  .toggle input{display:none;}
-  .toggle .tk{width:38px;height:22px;background:var(--line);border-radius:12px;
-    position:relative;transition:.2s;flex:0 0 auto;}
-  .toggle .tk::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;
-    background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
-  .toggle input:checked + .tk{background:var(--ok);}
-  .toggle input:checked + .tk::after{left:18px;}
-
   .char-picker{padding:10px;background:var(--soft);border-radius:10px;display:flex;
     align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
   .char-picker .cp-name{font-weight:600;color:var(--accent-d);flex:1;min-width:0;
@@ -176,7 +157,6 @@
   .img-thumb{max-width:100%;max-height:240px;border-radius:10px;
     border:1px solid var(--line);display:block;margin:8px auto;}
 
-  /* 关系网画布 */
   .canvas-wrap{position:relative;background:linear-gradient(135deg,#fbf7ee,#f0e7d3);
     border:1px solid var(--line);border-radius:14px;
     height:60vh;min-height:380px;overflow:hidden;
@@ -231,7 +211,6 @@
 <nav class="tabs">
   <div class="tab active" data-tab="make">创建</div>
   <div class="tab" data-tab="wb">世界书</div>
-  <div class="tab" data-tab="status">状态栏</div>
   <div class="tab" data-tab="rel">关系网</div>
   <div class="tab" data-tab="hist">历史</div>
   <div class="tab" data-tab="cfg">配置</div>
@@ -243,7 +222,6 @@
 
     <div class="card">
       <div class="ctitle">📥 导入参考资料辅助生成</div>
-      <div class="hint" style="margin-bottom:8px;">支持 .txt / .docx / .md，AI 会提取关键信息生成 char 大纲。</div>
       <label class="file-btn" for="charFile">
         📄 选择参考文件 (txt / docx / md)
         <input type="file" id="charFile" accept=".txt,.docx,.md,text/plain" />
@@ -251,7 +229,7 @@
       <div id="charFileName" class="hint" style="margin-top:6px;"></div>
       <textarea id="charPreview" placeholder="或直接粘贴参考内容…" style="margin-top:8px;min-height:80px;"></textarea>
       <label>补充要求（可选）</label>
-      <input id="charRel" placeholder="例：生成一个冷酷反派 / 参考原著但改写身世" />
+      <input id="charRel" placeholder="例：生成一个冷酷反派 / 参考原著改写身世" />
       <div class="btn-row">
         <button id="btnImportChar">分析并填入表单</button>
         <button class="ghost" id="btnClearChar">🗑 清空</button>
@@ -261,7 +239,7 @@
 
     <div class="card">
       <div class="ctitle">📷 识图分析角色卡</div>
-      <div class="hint" style="margin-bottom:8px;">上传角色立绘，AI 提取外貌特征（外貌/发型/气质/瞳色/特殊外貌/兽人特征）填入表单。需视觉模型如 gpt-4o。</div>
+      <div class="hint" style="margin-bottom:8px;">需视觉模型如 gpt-4o</div>
       <label class="file-btn" for="imgFile">
         🖼 选择角色卡图片
         <input type="file" id="imgFile" accept="image/*" />
@@ -275,12 +253,17 @@
     </div>
 
     <details open><summary>① 基础信息</summary><div>
-      <label>姓名 <span style="color:var(--err);">*</span></label>
-      <input id="f_name" placeholder="例：沈星遥" />
+      <label>姓名 <span style="color:var(--err);">*</span> <span style="color:var(--sub);">（点 🎲 让 AI 根据已填条件起名）</span></label>
+      <div class="name-row">
+        <input id="f_name" placeholder="例：沈星遥" />
+        <button id="btnRandomName" type="button" title="随机生成名字">🎲</button>
+      </div>
       <div class="row">
         <div><label>性别</label><input id="f_gender" /></div>
         <div><label>年龄</label><input id="f_age" /></div>
       </div>
+      <label>种族</label><input id="f_race" placeholder="例：人族 / 精灵 / 半妖" />
+      <label>上位 / 下位</label><input id="f_position" placeholder="上位 / 下位 / 平等" />
       <div class="row">
         <div><label>身高</label><input id="f_height" /></div>
         <div><label>生日/星座</label><input id="f_birth" /></div>
@@ -289,68 +272,75 @@
       <label>居住地</label><input id="f_city" />
     </div></details>
 
-    <details><summary>② 外貌特征</summary><div>
+    <details><summary>② 时代背景 🏛</summary><div>
+      <label>时代/世界背景</label>
+      <textarea id="f_era" class="compact" placeholder="例：现代都市 / 民国上海 / 修仙界 / 末日废土"></textarea>
+      <div class="hint">这会决定整个 char 所处的世界质感（科技/社会/审美等）。</div>
+    </div></details>
+
+    <details><summary>③ 外貌特征</summary><div>
       <label>外貌关键词</label><textarea id="f_appear"></textarea>
       <label>发型/发色</label><textarea id="f_hair" class="compact"></textarea>
       <label>气质氛围</label><textarea id="f_aura" class="compact"></textarea>
-      <label>瞳色 👁</label><textarea id="f_eyes" class="compact" placeholder="例：琥珀色 / 异色瞳"></textarea>
+      <label>瞳色 👁</label><textarea id="f_eyes" class="compact"></textarea>
       <label>特殊外貌（伤疤/纹身/穿洞等）</label><textarea id="f_special"></textarea>
-      <label>兽人/非人特征</label><textarea id="f_beast" placeholder="例：猫耳猫尾, 龙角"></textarea>
+      <label>兽人/非人特征</label><textarea id="f_beast"></textarea>
     </div></details>
 
-    <details><summary>③ 性格</summary><div>
+    <details><summary>④ 性格</summary><div>
       <label>性格关键词</label><textarea id="f_traits"></textarea>
       <label>MBTI/标签</label><input id="f_mbti" />
       <label>说话风格</label><textarea id="f_speech" class="compact"></textarea>
     </div></details>
 
-    <details><summary>④ 穿搭风格</summary><div>
+    <details><summary>⑤ 穿搭风格</summary><div>
       <label>风格关键词</label><textarea id="f_style"></textarea>
       <label>常见单品</label><textarea id="f_items" class="compact"></textarea>
     </div></details>
 
-    <details><summary>⑤ 家庭背景</summary><div>
+    <details><summary>⑥ 家庭背景</summary><div>
       <label>家庭关键词</label><textarea id="f_family"></textarea>
     </div></details>
 
-    <details><summary>⑥ 过去经历</summary><div>
+    <details><summary>⑦ 过去经历</summary><div>
       <label>童年关键词</label><textarea id="f_child"></textarea>
       <label>少年/上学时期</label><textarea id="f_teen"></textarea>
       <label>重要事件</label><textarea id="f_event"></textarea>
+      <label>U 对 C 的影响 / 参与（可选）</label>
+      <textarea id="f_uToC" placeholder="例：user 是 char 童年最重要的朋友 / user 救过 char 一命 / user 出现前 char 一直独自生活&#10;（留空则人设中不会出现 user）"></textarea>
+      <label>C 对 U 的影响 / 参与（可选）</label>
+      <textarea id="f_cToU" placeholder="例：char 一直暗中保护 user / char 是 user 的导师 / char 改变了 user 的人生轨迹&#10;（留空则人设中不会出现）"></textarea>
     </div></details>
 
-    <details><summary>⑦ 现状 & 关系</summary><div>
+    <details><summary>⑧ 现状 & 关系</summary><div>
       <label>当前状态</label><textarea id="f_now"></textarea>
       <label>感情/人际</label><textarea id="f_relation"></textarea>
     </div></details>
 
-    <details><summary>⑧ 爱好 & 喜好</summary><div>
+    <details><summary>⑨ 爱好 & 喜好</summary><div>
       <label>爱好</label><textarea id="f_hobby"></textarea>
       <label>喜欢</label><textarea id="f_like" class="compact"></textarea>
       <label>讨厌</label><textarea id="f_dislike" class="compact"></textarea>
     </div></details>
 
-    <details><summary>⑨ 其他补充</summary><div>
+    <details><summary>⑩ 其他补充</summary><div>
       <label>小怪癖/习惯</label><textarea id="f_quirk"></textarea>
       <label>秘密/隐藏面</label><textarea id="f_secret"></textarea>
       <label>其他</label><textarea id="f_other"></textarea>
     </div></details>
 
-    <details><summary>⑩ 语言使用规则 🗣</summary><div>
-      <div class="hint" style="margin-bottom:6px;">定义 char 怎么说话——标点、语气、特殊表达。</div>
+    <details><summary>⑪ 语言使用规则 🗣</summary><div>
       <label>标点使用习惯</label><textarea id="f_punct" class="compact"></textarea>
       <label>语气词偏好</label><textarea id="f_mood" class="compact"></textarea>
       <label>回复长度</label><input id="f_len" />
       <label>特殊表达习惯</label><textarea id="f_express" class="compact"></textarea>
-      <label>自定义规则（重点）</label><textarea id="f_langrule" placeholder="例：&#10;…… = 无语 / 吃醋&#10;。独立成句 = 冷漠"></textarea>
+      <label>自定义规则（重点）</label><textarea id="f_langrule" placeholder="例：&#10;…… = 无语 / 吃醋"></textarea>
     </div></details>
 
-    <details><summary>⑪ 日程参考 🗓</summary><div>
-      <div class="hint" style="margin-bottom:6px;">char 的大致日程，仅作参考底色，不是死板剧本。</div>
-      <label>工作日（周一～周五）</label>
-      <textarea id="f_weekday" placeholder="例：&#10;7:30 起床&#10;8:30-12:00 上课&#10;..."></textarea>
-      <label>周末</label>
-      <textarea id="f_weekend" placeholder="例：&#10;晚起到10点&#10;..."></textarea>
+    <details><summary>⑫ 日程参考 🗓</summary><div>
+      <label>工作日大致安排</label><textarea id="f_weekday"></textarea>
+      <label>周末大致安排</label><textarea id="f_weekend"></textarea>
+      <div class="hint">仅作参考底色，AI 会被告知"不必逐条执行"。</div>
     </div></details>
 
     <div class="card">
@@ -360,7 +350,7 @@
         <button id="btnGen">✨ 生成完整 char 设定</button>
         <button class="ghost" id="btnClear">清空表单</button>
       </div>
-      <div class="hint">生成成功后会自动存档到「历史」</div>
+      <div class="hint">生成成功后自动存档</div>
       <div id="genStatus" class="status"></div>
     </div>
 
@@ -369,7 +359,6 @@
   </section>
 
   <section class="panel" id="panel-wb"><div id="wbBody"></div></section>
-  <section class="panel" id="panel-status"><div id="statusBody"></div></section>
   <section class="panel" id="panel-rel"><div id="relBody"></div></section>
 
   <section class="panel" id="panel-hist">
@@ -394,7 +383,7 @@
       <input id="baseUrl" type="url" inputmode="url" autocomplete="off" placeholder="https://api.openai.com/v1" />
       <label>API Key</label>
       <input id="apiKey" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="sk-..." />
-      <div class="hint">使用普通文本输入，不弹出安全键盘</div>
+      <div class="hint">普通文本输入，不弹安全键盘</div>
       <label>模型</label>
       <select id="modelSelect"><option value="">— 请先拉取 —</option></select>
       <input id="modelManual" placeholder="或手动输入模型名" style="margin-top:6px;" />
@@ -430,21 +419,23 @@
 <script>
 const LS={cfg:'cg_cfg',presets:'cg_presets',hist:'cg_hist'};
 const $=id=>document.getElementById(id);
-const FIELDS=['name','gender','age','height','birth','job','city',
+const FIELDS=['name','gender','age','race','position','height','birth','job','city','era',
   'appear','hair','aura','eyes','special','beast',
-  'traits','mbti','speech','style','items','family','child','teen','event','now',
-  'relation','hobby','like','dislike','quirk','secret','other',
+  'traits','mbti','speech','style','items','family',
+  'child','teen','event','uToC','cToU','now','relation',
+  'hobby','like','dislike','quirk','secret','other',
   'punct','mood','len','express','langrule','weekday','weekend','tone'];
-
-const DEFAULT_STATUS_CODE='【状态栏规则·必须遵守】\n你（char）每次回复消息后，必须在末尾另起一行，以以下固定格式追加一个"状态栏"：\n\n═══════ ❀ 状态栏 ❀ ═══════\n👔 穿着：[根据当下场景具体描述]\n💭 心声：[符合char性格的当下想法]\n❤️ 好感度：[数字]/100　[变化方向：↑/↓/-]\n═══════════════════════\n\n【心声特别规则】\n• 常规情况：心声 = 正常想法（符合人设）。\n• 特殊情境（被刺激/嫉妒/极端情绪/秘密被触及）：心声【有概率】呈现阴暗面，与表面回复形成反差。\n• 心声必须真正符合 char 人设，绝不 OOC。\n\n【聊天风格】\n本次对话为短消息聊天（类似微信），回复简短自然，状态栏在每条回复末尾出现。';
 
 const CHIP_OPTIONS={
   f_gender:{mode:'single',opts:['女','男','无性别','双性','跨性别']},
   f_age:{mode:'single',opts:['16','18','20','22','25','28','30','35','40','45','50+']},
+  f_race:{mode:'single',opts:['人族','精灵','兽人','吸血鬼','天使','恶魔','神族','妖怪','龙族','魔族','半人马','狼人','人鱼','AI/机器人','僵尸','幽灵','半神','修仙者','其他']},
+  f_position:{mode:'single',opts:['上位','下位','平等','看情境']},
   f_height:{mode:'single',opts:['155cm','160cm','165cm','170cm','175cm','180cm','185cm','190cm']},
   f_birth:{mode:'single',opts:['白羊','金牛','双子','巨蟹','狮子','处女','天秤','天蝎','射手','摩羯','水瓶','双鱼']},
   f_job:{mode:'multi',opts:['学生','教授','医生','律师','警察','军人','商人','CEO','设计师','程序员','作家','艺术家','演员','歌手','王室','贵族','佣兵','杀手','神明','妖怪','修仙者']},
   f_city:{mode:'single',opts:['北京','上海','东京','纽约','伦敦','巴黎','架空都市','修真界','异世界','小镇','国外']},
+  f_era:{mode:'single',opts:['上古/远古','古代东方','古代西方','中世纪','民国','近代','现代','近未来','远未来','赛博朋克','蒸汽朋克','末日废土','魔幻奇幻','修仙玄幻','校园','职场','江湖武侠','宫廷','架空异世界','末世幸存']},
   f_appear:{mode:'multi',opts:['凤眼','桃花眼','单眼皮','双眼皮','薄唇','厚唇','锁骨清晰','颈线好看','骨节分明','虎牙','长睫毛','冷白皮','小麦色','身材纤瘦','身材健壮']},
   f_hair:{mode:'multi',opts:['黑长发','黑短发','银发','金发','红发','紫发','卷发','直发','半扎','马尾','刘海','狼尾','寸头','麻花辫']},
   f_aura:{mode:'multi',opts:['清冷','禁欲','温润','凌厉','邪魅','病娇','阳光','腹黑','霸道','慵懒','神秘','危险','学者气','贵气','痞气']},
@@ -522,7 +513,6 @@ document.querySelectorAll('.tab').forEach(t=>{
     const k=t.dataset.tab;
     if(k==='hist')renderHist();
     else if(k==='wb')renderWBTab();
-    else if(k==='status')renderStatusTab();
     else if(k==='rel')renderRelTab();
   });
 });
@@ -530,7 +520,7 @@ document.querySelectorAll('.tab').forEach(t=>{
 function showStatus(el,msg,type){if(!el)return;el.className='status show '+(type||'');el.textContent=msg;if(type==='ok')setTimeout(()=>el.classList.remove('show'),2500);}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
-/* ===== 配置 ===== */
+/* 配置 */
 function loadCfg(){
   const c=JSON.parse(localStorage.getItem(LS.cfg)||'{}');
   $('baseUrl').value=c.baseUrl||'';$('apiKey').value=c.apiKey||'';
@@ -562,7 +552,7 @@ window.doSavePreset=()=>{
 };
 $('btnDelPreset').onclick=()=>{
   const i=$('presetSelect').value;if(i===''){alert('请先选择');return;}
-  if(!confirm('删除该预设？'))return;
+  if(!confirm('删除？'))return;
   const arr=JSON.parse(localStorage.getItem(LS.presets)||'[]');
   arr.splice(+i,1);localStorage.setItem(LS.presets,JSON.stringify(arr));loadPresets();
 };
@@ -573,11 +563,12 @@ $('btnFetchModels').onclick=async()=>{
     const r=await fetch(c.baseUrl+'/models',{headers:{'Authorization':'Bearer '+c.apiKey}});
     if(!r.ok)throw new Error('HTTP '+r.status);
     const j=await r.json();
-    const list=(j.data||j.models||[]).map(m=>m.id||m.name).filter(Boolean);
+    let list=(j.data||j.models||[]).map(m=>m.id||m.name).filter(Boolean);
+    list.sort((a,b)=>a.localeCompare(b,'en',{numeric:true,sensitivity:'base'}));
     const sel=$('modelSelect');sel.innerHTML='';
     list.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;sel.appendChild(o);});
     if(c.model&&list.includes(c.model))sel.value=c.model;
-    showStatus($('cfgStatus'),'✓ 共 '+list.length+' 个','ok');
+    showStatus($('cfgStatus'),'✓ 共 '+list.length+' 个（已按名称排序）','ok');
   }catch(e){showStatus($('cfgStatus'),'✗ '+e.message,'err');}
 };
 $('btnTest').onclick=async()=>{
@@ -609,20 +600,23 @@ function extractJSON(txt){
   return JSON.parse(m[0]);
 }
 
-/* ===== 表单 ===== */
+/* 表单 */
 function collectForm(){const o={};FIELDS.forEach(k=>{const el=$('f_'+k);o[k]=el?el.value.trim():'';});return o;}
 function fillForm(o){FIELDS.forEach(k=>{const el=$('f_'+k);if(el&&o[k]!==undefined)el.value=o[k]||'';});syncChips();}
 function fillFormPartial(o){for(const k in o){const el=$('f_'+k);if(el&&o[k])el.value=o[k];}syncChips();}
 function buildBrief(f){
   const lines=[];const push=(k,v)=>{if(v)lines.push('【'+k+'】'+v);};
   push('姓名',f.name);push('性别',f.gender);push('年龄',f.age);
+  push('种族',f.race);push('上下位',f.position);
   push('身高',f.height);push('生日/星座',f.birth);
   push('身份/职业',f.job);push('居住地',f.city);
+  push('时代背景',f.era);
   push('外貌',f.appear);push('发型',f.hair);push('气质',f.aura);
   push('瞳色',f.eyes);push('特殊外貌',f.special);push('兽人/非人特征',f.beast);
   push('性格',f.traits);push('MBTI/标签',f.mbti);push('说话风格',f.speech);
   push('穿搭风格',f.style);push('常见单品',f.items);
   push('家庭',f.family);push('童年',f.child);push('少年/上学时期',f.teen);push('重要事件',f.event);
+  push('U对C的影响/参与',f.uToC);push('C对U的影响/参与',f.cToU);
   push('当前状态',f.now);push('感情人际',f.relation);
   push('爱好',f.hobby);push('喜欢',f.like);push('讨厌',f.dislike);
   push('小怪癖',f.quirk);push('秘密',f.secret);push('其他',f.other);
@@ -637,7 +631,31 @@ $('btnClear').onclick=()=>{
   resetCharImport();resetImg();syncChips();
 };
 
-/* ===== 文件读取 ===== */
+/* 🎲 随机名字 */
+$('btnRandomName').onclick=async()=>{
+  const c=getCfg();
+  if(!c.baseUrl||!c.apiKey||!c.model){showStatus($('genStatus'),'请先配置 API','err');return;}
+  const f=collectForm();
+  const ctx=[];
+  if(f.race)ctx.push('种族：'+f.race);
+  if(f.era)ctx.push('时代背景：'+f.era);
+  if(f.gender)ctx.push('性别：'+f.gender);
+  if(f.aura)ctx.push('气质：'+f.aura);
+  if(f.city)ctx.push('地区：'+f.city);
+  const btn=$('btnRandomName');
+  btn.disabled=true;btn.textContent='⌛';
+  try{
+    const sys='你是人物起名师。根据用户条件生成一个合适的姓名（中文优先；西方背景可用英文名；古风可用古典名）。\n只输出姓名本身，不要任何解释、引号或额外字符。';
+    const userMsg=ctx.length?ctx.join('，')+'\n\n请输出一个姓名。':'随便起一个有意境的中文姓名。';
+    const out=await callLLM([{role:'system',content:sys},{role:'user',content:userMsg}],{temperature:1.05});
+    let name=out.replace(/[「」『』""''《》〈〉()（）\[\]【】]/g,'').replace(/[。.,，:：!！?？\n]+/g,' ').trim().split(/\s+/)[0];
+    if(name){$('f_name').value=name;showStatus($('genStatus'),'✓ 已生成名字','ok');}
+    else throw new Error('返回为空');
+  }catch(e){showStatus($('genStatus'),'✗ '+e.message,'err');}
+  finally{btn.disabled=false;btn.textContent='🎲';}
+};
+
+/* 文件读取 */
 async function readTxtSmart(buf){
   const bytes=new Uint8Array(buf);
   if(bytes[0]===0xFF&&bytes[1]===0xFE)return new TextDecoder('utf-16le').decode(buf);
@@ -668,17 +686,17 @@ async function readFileSmart(file){
   return await readTxtSmart(buf);
 }
 
-/* ===== 导入 ===== */
+/* 导入 */
 let _charText='';
 function resetCharImport(){_charText='';$('charFile').value='';$('charFileName').textContent='';$('charPreview').value='';$('charRel').value='';$('importStatus').classList.remove('show');}
 $('btnClearChar').onclick=()=>{resetCharImport();showStatus($('importStatus'),'✓ 已清空','ok');};
 $('charFile').onchange=async function(e){
   const f=e.target.files[0];if(!f)return;
-  $('charFileName').textContent='已选择：'+f.name+'（读取中…）';
+  $('charFileName').textContent='读取中…';
   try{
     const txt=await readFileSmart(f);_charText=txt;
     $('charPreview').value=txt.slice(0,3000)+(txt.length>3000?'\n\n...（已截断预览）':'');
-    $('charFileName').textContent='已选择：'+f.name+'（'+txt.length+' 字符）';
+    $('charFileName').textContent='✓ '+f.name+'（'+txt.length+' 字符）';
   }catch(err){$('charFileName').textContent='读取失败：'+err.message;_charText='';}
 };
 $('charPreview').addEventListener('input',e=>{_charText=e.target.value;});
@@ -693,7 +711,7 @@ $('btnImportChar').onclick=async()=>{
   $('btnImportChar').innerHTML='<span class="loading"></span>分析中…';
   $('importStatus').classList.remove('show');
   try{
-    const sys='你是严谨的角色卡分析师。请提取或基于参考资料生成 char 标签大纲。\n严格输出 JSON（不要 markdown）：\n{"name":"","gender":"","age":"","height":"","birth":"","job":"","city":"",\n"appear":"","hair":"","aura":"","eyes":"","special":"","beast":"",\n"traits":"","mbti":"","speech":"","style":"","items":"",\n"family":"","child":"","teen":"","event":"",\n"now":"","relation":"","hobby":"","like":"","dislike":"",\n"quirk":"","secret":"","other":"",\n"punct":"","mood":"","len":"","express":"","langrule":"",\n"weekday":"","weekend":""}\n所有字段用简短关键词。';
+    const sys='你是角色卡分析师。请提取或基于参考资料生成 char 标签大纲。\n严格输出 JSON：\n{"name":"","gender":"","age":"","race":"种族","position":"上位/下位/平等","height":"","birth":"","job":"","city":"",\n"era":"时代背景",\n"appear":"","hair":"","aura":"","eyes":"","special":"","beast":"",\n"traits":"","mbti":"","speech":"","style":"","items":"",\n"family":"","child":"","teen":"","event":"",\n"uToC":"如资料中提到 user 对 char 的影响则填","cToU":"如提到 char 对 user 的影响则填",\n"now":"","relation":"","hobby":"","like":"","dislike":"",\n"quirk":"","secret":"","other":"",\n"punct":"","mood":"","len":"","express":"","langrule":"",\n"weekday":"","weekend":""}\n所有字段用简短关键词，资料中没提及的可留空。';
     const userMsg='【参考资料】\n'+charText+'\n\n'+(rel?'【补充要求·优先遵守】\n'+rel+'\n\n':'')+'请输出 JSON。';
     const out=await callLLM([{role:'system',content:sys},{role:'user',content:userMsg}],{temperature:0.6});
     const data=extractJSON(out);
@@ -704,7 +722,7 @@ $('btnImportChar').onclick=async()=>{
   finally{$('btnImportChar').disabled=false;$('btnImportChar').innerHTML='分析并填入表单';}
 };
 
-/* ===== 识图 ===== */
+/* 识图 */
 let _imgDataUrl='';
 function resetImg(){_imgDataUrl='';$('imgFile').value='';$('imgThumb').style.display='none';$('imgThumb').src='';$('btnAnalyzeImg').disabled=true;$('imgStatus').classList.remove('show');}
 $('btnClearImg').onclick=()=>{resetImg();showStatus($('imgStatus'),'✓ 已清空','ok');};
@@ -715,7 +733,7 @@ $('imgFile').onchange=function(e){
     _imgDataUrl=ev.target.result;
     $('imgThumb').src=_imgDataUrl;$('imgThumb').style.display='block';
     $('btnAnalyzeImg').disabled=false;
-    showStatus($('imgStatus'),'图片已加载，点「分析图片并填入」','ok');
+    showStatus($('imgStatus'),'图片已加载','ok');
   };
   reader.readAsDataURL(f);
 };
@@ -727,7 +745,7 @@ $('btnAnalyzeImg').onclick=async()=>{
   $('btnAnalyzeImg').innerHTML='<span class="loading"></span>识图中…';
   $('imgStatus').classList.remove('show');
   try{
-    const sys='你是角色立绘分析师。提取角色外貌特征。严格输出 JSON：\n{"appear":"","hair":"","aura":"","eyes":"瞳色","special":"特殊外貌","beast":"兽人/非人特征","style":"穿搭","items":"配饰","gender":"","age":""}\n如实描述图片可见特征。';
+    const sys='你是角色立绘分析师。严格输出 JSON：\n{"appear":"","hair":"","aura":"","eyes":"瞳色","special":"特殊外貌","beast":"兽人/非人特征","style":"穿搭","items":"配饰","gender":"","age":"","race":"种族（如可辨）"}\n如实描述图片可见特征。';
     const r=await fetch(c.baseUrl+'/chat/completions',{method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.apiKey},
       body:JSON.stringify({model:c.model,temperature:0.5,messages:[
@@ -744,13 +762,41 @@ $('btnAnalyzeImg').onclick=async()=>{
     const data=extractJSON(txt);
     fillFormPartial(data);
     showStatus($('imgStatus'),'✓ 已填入外貌字段','ok');
-    document.querySelectorAll('#panel-make details').forEach((d,i)=>{if(i<2)d.open=true;});
+    document.querySelectorAll('#panel-make details').forEach((d,i)=>{if(i<3)d.open=true;});
   }catch(e){showStatus($('imgStatus'),'✗ '+e.message+'（请用支持视觉的模型）','err');}
   finally{$('btnAnalyzeImg').disabled=false;$('btnAnalyzeImg').innerHTML='分析图片并填入';}
 };
 
-/* ===== 主生成 ===== */
-const SYS_MAIN='你是专业的角色设定撰写师，把零碎标签扩写成立体真实的 char 人设。\n1. 完全基于用户标签，不无中生有；\n2. 真实感、矛盾感、层次感；\n3. 输出结构化中文人设，按以下板块（标题用 ◆ 包裹），都必须输出：\n\n   ◆ 基础档案 ◆ ：罗列基础信息\n   ◆ 外貌速写 ◆ ：80-180 字。务必把瞳色、特殊外貌（疤痕/纹身）、兽人/非人特征（耳尾/角/翅膀）自然融入。\n   ◆ 性格剖析 ◆ ：分点 3-5 条\n   ◆ 穿搭品味 ◆\n   ◆ 衣橱 ◆ ：4 套不同场合穿搭，每套 60-100 字\n   ◆ 故事背景 ◆ ：约 1200 字。分阶段：童年/少年上学/成年（如已成年）或当前阶段（如仍在校）/现在。校园身份重点写当下校园生活。\n   ◆ 喜好厌恶 ◆\n   ◆ 小怪癖 & 隐藏面 ◆\n   ◆ 语言使用规则 ◆ ：必须详细具体。\n       • 标点符号偏好+情绪映射（…… = 无语/吃醋）\n       • 语气词使用情境\n       • 回复长度与节奏\n       • 特殊表达习惯\n       • 自定义细则\n   ◆ 日程参考 ◆ ：工作日/周末两栏。末尾必须附以下使用说明（原文输出）：\n       --- 日程使用说明 ---\n       本日程仅作 char 生活节奏的参考底色，不是必须严格执行的剧本。\n       请把 char 当作真人对待——人的日程并非每天一成不变。\n       · 用户在某时段发消息，不要机械重复"我现在在做X"；\n       · char 可能正按表行事 / 临时变动 / 刚结束 / 因故没去 / 在偷懒；\n       · 让 char 根据情境、情绪、与用户关系自然反应；\n       · 日程是底色，让生活有质感，但不要让它变成念台词。\n   ◆ 一句话标签 ◆\n\n4. 直接输出正文，不要解释、不要 markdown。';
+/* 主生成 */
+const SYS_MAIN='你是专业的角色设定撰写师，把零碎标签扩写成立体真实的 char 人设。\n'+
+'1. 完全基于用户标签，不无中生有；\n'+
+'2. 让人物有真实感、矛盾感、层次感；\n'+
+'3. 输出结构化中文人设，按以下板块（标题用 ◆ 包裹），所有板块都必须输出：\n\n'+
+'   ◆ 基础档案 ◆ ：罗列基础信息（姓名/性别/年龄/种族/上下位/身高/生日/职业/居住地等）。\n'+
+'   ◆ 时代背景 ◆ ：用 60-150 字描写 char 所处的世界——科技水平、社会风貌、人物所处时代的特殊气质，让读者快速进入世界观。\n'+
+'   ◆ 外貌速写 ◆ ：80-180 字。务必把瞳色、特殊外貌（疤痕/纹身）、兽人/非人特征（耳尾/角/翅膀）自然融入。\n'+
+'   ◆ 性格剖析 ◆ ：分点 3-5 条\n'+
+'   ◆ 穿搭品味 ◆\n'+
+'   ◆ 衣橱 ◆ ：4 套不同场合穿搭，每套 60-100 字\n'+
+'   ◆ 故事背景 ◆ ：约 1200 字。分阶段：童年/少年上学/成年（如已成年）或当前阶段（如仍在校）/现在。校园身份重点写当下校园生活。\n'+
+'       ※ 如用户提供了"U对C的影响/参与"或"C对U的影响/参与"，必须把这些情节自然编织进 char 的人生线，使其成为重要章节；如用户没填，则故事中完全不要提及 user，让 char 是独立完整的个体。\n'+
+'   ◆ 喜好厌恶 ◆\n'+
+'   ◆ 小怪癖 & 隐藏面 ◆\n'+
+'   ◆ 语言使用规则 ◆ ：必须详细具体。\n'+
+'       • 标点符号偏好+情绪映射（…… = 无语/吃醋）\n'+
+'       • 语气词使用情境\n'+
+'       • 回复长度与节奏\n'+
+'       • 特殊表达习惯\n'+
+'       • 自定义细则\n'+
+'   ◆ 日程参考 ◆ ：工作日/周末两栏。末尾必须附以下使用说明（原文输出）：\n'+
+'       --- 日程使用说明 ---\n'+
+'       本日程仅作 char 生活节奏的参考底色，不是必须严格执行的剧本。\n'+
+'       请把 char 当作真人对待——人的日程并非每天一成不变。\n'+
+'       · 用户在某时段发消息，不要机械重复"我现在在做X"；\n'+
+'       · char 可能正按表行事 / 临时变动 / 刚结束 / 因故没去 / 在偷懒；\n'+
+'       · 让 char 根据情境、情绪、与用户关系自然反应。\n'+
+'   ◆ 一句话标签 ◆\n\n'+
+'4. 直接输出正文，不要解释、不要 markdown 代码块。';
 
 let _current=null;
 
@@ -771,7 +817,6 @@ $('btnGen').onclick=async()=>{
       name:f.name,content:txt,form:f,time:Date.now(),
       chat:[],
       worldbook:[],worldbookPref:'',
-      statusBar:{enabled:false,code:DEFAULT_STATUS_CODE},
       relations:{centerId:null,nodes:[],edges:[],view:{scale:1,tx:0,ty:0},title:''}
     };
     autoArchive();renderResult();
@@ -799,29 +844,31 @@ function renderResult(){
       esc(it.content)+
     '</div>'+
     '<div class="btn-row">'+
-      '<button class="ghost" onclick="copyResult()">复制</button>'+
+      '<button onclick="copyResult()">📋 一键复制全部内容</button>'+
+    '</div>'+
+    '<div class="btn-row">'+
       '<button class="ghost" onclick="exportTxt(_current)">导出 TXT</button>'+
       '<button class="ghost" onclick="exportDocx(_current)">导出 DOCX</button>'+
-      '<button onclick="autoArchive();showStatus(document.getElementById(\'genStatus\'),\'✓ 已更新存档\',\'ok\')">📥 更新存档</button>'+
+      '<button class="ghost" onclick="autoArchive();showStatus(document.getElementById(\'genStatus\'),\'✓ 已更新存档\',\'ok\')">📥 更新存档</button>'+
     '</div>'+
     renderChat();
   scrollChat();
 }
 
-/* ===== 修改对话 ===== */
+/* 修改对话 */
 function renderChat(){
   const it=_current;const list=it.chat||[];
   const msgs=list.length?list.map(m=>{
     const cls=m.role==='user'?'user':(m.plan?'plan':'ai');
     return '<div class="msg '+cls+'"><div class="bub">'+esc(m.content)+'</div></div>';
-  }).join(''):'<div class="empty" style="padding:14px;">告诉 AI 你想怎么修改，它会先给出修改计划，确认后再改。</div>';
+  }).join(''):'<div class="empty" style="padding:14px;">告诉 AI 你想怎么修改，它会先给出修改计划。</div>';
   const lastIsPlan=list.length&&list[list.length-1].plan;
   return '<div class="card">'+
     '<div class="ctitle">💬 修改对话</div>'+
     '<div class="chat-box" id="chatBox">'+msgs+'</div>'+
     '<textarea id="chatInput" placeholder="例：性格太温柔了，改得更冷漠一点" style="min-height:50px;"></textarea>'+
     '<div class="btn-row">'+
-      '<button onclick="sendChat()">发送（出修改计划）</button>'+
+      '<button onclick="sendChat()">发送</button>'+
       (lastIsPlan?'<button onclick="applyChat()" style="background:var(--ok);">✓ 应用此计划</button>':'')+
       '<button class="ghost" onclick="clearChat()">清空对话</button>'+
     '</div>'+
@@ -836,7 +883,7 @@ window.sendChat=async()=>{
   _current.chat.push({role:'user',content:msg});$('chatInput').value='';
   renderResult();showStatus($('chatStatus'),'AI 思考中…','');
   try{
-    const sys='你是人设修改助手。当前 char 人设：\n\n'+_current.content+'\n\n用户提出修改意见，你要：\n1. 理解意图；\n2. 给出具体「修改计划」——哪些板块改什么；\n3. 不要现在就输出新人设全文；\n4. 用中文。';
+    const sys='你是人设修改助手。当前 char 人设：\n\n'+_current.content+'\n\n用户提出修改意见，给出具体「修改计划」——哪些板块改什么；不要现在就输出新人设全文。';
     const history=(_current.chat||[]).map(m=>({role:m.role==='user'?'user':'assistant',content:m.content}));
     const out=await callLLM([{role:'system',content:sys}].concat(history),{temperature:0.7});
     if(checkBanned(out)){bannedAlert();return;}
@@ -847,11 +894,11 @@ window.sendChat=async()=>{
 };
 window.applyChat=async()=>{
   if(!_current)return;
-  showStatus($('chatStatus'),'正在应用修改…','');
+  showStatus($('chatStatus'),'正在应用…','');
   try{
     const convo=(_current.chat||[]).map(m=>(m.role==='user'?'【用户】':'【助手】')+m.content).join('\n\n');
-    const sys='你是角色撰写师。基于【原人设】和【修改对话】，输出修改后的完整人设。保留所有 ◆板块◆ 结构，仅改对话中商定要改的部分。日程参考末尾的"使用说明"必须保留。直接输出正文，不要解释、不要 markdown。';
-    const user='【原人设】\n'+_current.content+'\n\n【修改对话】\n'+convo+'\n\n请输出修改后的完整人设。';
+    const sys='你是角色撰写师。基于【原人设】和【修改对话】，输出修改后的完整人设。保留所有 ◆板块◆ 结构，仅改对话商定要改的部分。日程参考末尾的"使用说明"必须保留。直接输出正文。';
+    const user='【原人设】\n'+_current.content+'\n\n【修改对话】\n'+convo;
     const out=await callLLM([{role:'system',content:sys},{role:'user',content:user}],{temperature:0.75});
     if(!out)throw new Error('返回为空');
     if(checkBanned(out)){bannedAlert();return;}
@@ -862,11 +909,11 @@ window.applyChat=async()=>{
   }catch(e){showStatus($('chatStatus'),'✗ '+e.message,'err');}
 };
 window.clearChat=()=>{
-  if(!_current||!confirm('清空当前 char 的修改对话？'))return;
+  if(!_current||!confirm('清空修改对话？'))return;
   _current.chat=[];autoArchive();renderResult();
 };
 
-/* ===== char 选择器 ===== */
+/* char 选择器 */
 function buildCharPicker(){
   const arr=JSON.parse(localStorage.getItem(LS.hist)||'[]');
   let opts='<option value="">— 选择已存档的 char —</option>';
@@ -883,33 +930,31 @@ window.pickChar=function(id){
     if(!_current.chat)_current.chat=[];
     if(!_current.worldbook)_current.worldbook=[];
     if(!_current.worldbookPref)_current.worldbookPref='';
-    if(!_current.statusBar)_current.statusBar={enabled:false,code:DEFAULT_STATUS_CODE};
     if(!_current.relations)_current.relations={centerId:null,nodes:[],edges:[],view:{scale:1,tx:0,ty:0},title:''};
   }
   const active=document.querySelector('.tab.active');if(!active)return;
   const k=active.dataset.tab;
-  if(k==='wb')renderWBTab();else if(k==='status')renderStatusTab();else if(k==='rel')renderRelTab();
+  if(k==='wb')renderWBTab();else if(k==='rel')renderRelTab();
 };
 
-/* ===== 世界书 ===== */
+/* 世界书 */
 function renderWBTab(){
   const body=$('wbBody');
-  if(!_current){body.innerHTML=buildCharPicker()+'<div class="card"><div class="empty">请先生成或从上方选择 char</div></div>';return;}
+  if(!_current){body.innerHTML=buildCharPicker()+'<div class="card"><div class="empty">请先生成或选择 char</div></div>';return;}
   const it=_current;const list=it.worldbook||[];
   const items=list.length?list.map((w,i)=>
     '<div class="wb-item"><div class="wb-title">📖 '+esc(w.title)+'</div><div class="wb-key">🔑 '+esc(w.keywords||'(无)')+'</div><div class="wb-content">'+esc(w.content)+'</div><div class="wb-btns"><button class="ghost" onclick="editWB('+i+')">编辑</button><button class="danger" onclick="delWB('+i+')">删除</button></div></div>'
   ).join(''):'<div class="empty" style="padding:14px;">还没有世界书条目</div>';
   body.innerHTML=buildCharPicker()+
-    '<div class="card"><div class="ctitle">💡 偏好建议</div><div class="hint">写下希望 AI 生成世界书时遵循的偏好。</div><textarea id="wbPrefInput" placeholder="例：背景是末日废土，幸存者聚集在地下城" style="min-height:80px;margin-top:8px;">'+esc(it.worldbookPref||'')+'</textarea><div class="btn-row"><button onclick="saveWBPref()">保存偏好</button></div><div id="wbPrefStatus" class="status"></div></div>'+
-    '<div class="card"><div class="ctitle">🌐 世界书条目 <span class="badge">'+list.length+'</span></div>'+
-    '<div style="margin-top:8px;">'+items+'</div><div class="btn-row"><button onclick="addWB()">＋ 新建条目</button><button class="ghost" onclick="aiGenWB()">✨ AI 生成</button></div><div id="wbStatus" class="status"></div></div>';
+    '<div class="card"><div class="ctitle">💡 偏好建议</div><div class="hint">希望 AI 生成世界书时遵循的偏好。</div><textarea id="wbPrefInput" placeholder="例：背景是末日废土" style="min-height:80px;margin-top:8px;">'+esc(it.worldbookPref||'')+'</textarea><div class="btn-row"><button onclick="saveWBPref()">保存偏好</button></div><div id="wbPrefStatus" class="status"></div></div>'+
+    '<div class="card"><div class="ctitle">🌐 世界书 <span class="badge">'+list.length+'</span></div><div style="margin-top:8px;">'+items+'</div><div class="btn-row"><button onclick="addWB()">＋ 新建</button><button class="ghost" onclick="aiGenWB()">✨ AI 生成</button></div><div id="wbStatus" class="status"></div></div>';
 }
 window.saveWBPref=()=>{if(!_current)return;_current.worldbookPref=$('wbPrefInput').value.trim();autoArchive();showStatus($('wbPrefStatus'),'✓ 已保存','ok');};
 window.addWB=function(idx){
   if(!_current){alert('请先选择 char');return;}
   const list=_current.worldbook||[];
   const w=(idx===undefined||idx===null||idx<0)?{title:'',keywords:'',content:''}:list[idx];
-  openModal('<h3>'+(idx===undefined||idx===null||idx<0?'新建':'编辑')+'世界书条目</h3><label>标题</label><input id="_wb_t" value="'+esc(w.title)+'" /><label>关键词</label><input id="_wb_k" value="'+esc(w.keywords)+'" /><label>内容</label><textarea id="_wb_c" style="min-height:140px;">'+esc(w.content)+'</textarea><div class="btn-row"><button class="ghost" onclick="closeModal()">取消</button><button onclick="saveWB('+(idx===undefined||idx===null?-1:idx)+')">保存</button></div>');
+  openModal('<h3>'+(idx===undefined||idx===null||idx<0?'新建':'编辑')+'世界书</h3><label>标题</label><input id="_wb_t" value="'+esc(w.title)+'" /><label>关键词</label><input id="_wb_k" value="'+esc(w.keywords)+'" /><label>内容</label><textarea id="_wb_c" style="min-height:140px;">'+esc(w.content)+'</textarea><div class="btn-row"><button class="ghost" onclick="closeModal()">取消</button><button onclick="saveWB('+(idx===undefined||idx===null?-1:idx)+')">保存</button></div>');
 };
 window.editWB=function(i){addWB(i);};
 window.saveWB=function(i){
@@ -925,7 +970,7 @@ window.aiGenWB=async function(){
   showStatus($('wbStatus'),'AI 生成中…','');
   try{
     const pref=_current.worldbookPref||'';
-    const sys='你是世界观构建师。根据 char 人设和用户偏好，生成 3-5 条世界书条目。\n输出 JSON：{"entries":[{"title":"","keywords":"关键词1, 关键词2","content":"100-200字"}]}';
+    const sys='你是世界观构建师。根据 char 人设和偏好生成 3-5 条世界书条目。\n输出 JSON：{"entries":[{"title":"","keywords":"关键词1, 关键词2","content":"100-200字"}]}';
     const userMsg='【char 人设】\n'+_current.content+'\n\n'+(pref?'【偏好】\n'+pref+'\n\n':'')+'请输出 JSON。';
     const out=await callLLM([{role:'system',content:sys},{role:'user',content:userMsg}],{temperature:0.85});
     const data=extractJSON(out);
@@ -936,63 +981,34 @@ window.aiGenWB=async function(){
   }catch(e){showStatus($('wbStatus'),'✗ '+e.message,'err');}
 };
 
-/* ===== 状态栏 ===== */
-function renderStatusTab(){
-  const body=$('statusBody');
-  if(!_current){body.innerHTML=buildCharPicker()+'<div class="card"><div class="empty">请先生成或选择 char</div></div>';return;}
-  const sb=_current.statusBar||{enabled:false,code:DEFAULT_STATUS_CODE};
-  body.innerHTML=buildCharPicker()+
-    '<div class="card"><div class="ctitle">⚙ 启用状态栏</div><div class="hint" style="margin-bottom:10px;">开启后规则会作为人设一部分，导出时一同写入。</div><label class="toggle"><input type="checkbox" id="sbToggle" '+(sb.enabled?'checked':'')+' onchange="toggleSB(this.checked)" /><span class="tk"></span><span style="font-size:13px;">'+(sb.enabled?'已启用':'未启用')+'</span></label></div>'+
-    '<div class="card"><div class="ctitle">👁 预览（仿酒馆样式）</div>'+
-      '<div class="sb-preview"><div class="sb-head">❀ 状 态 栏 ❀</div><div class="sb-row"><span class="sb-k">👔 穿着</span><span class="sb-v">白衬衫 + 黑色西装外套</span></div><div class="sb-row"><span class="sb-k">💭 心声</span><span class="sb-v">这家伙今天又在逗我……算了，再陪她待一会儿。</span></div><div class="sb-row"><span class="sb-k">❤️ 好感度</span><span class="sb-v">62/100　↑</span></div><div class="sb-tail">— 常规心声 —</div></div>'+
-      '<div class="sb-preview" style="margin-top:10px;"><div class="sb-head">❀ 状 态 栏 ❀</div><div class="sb-row"><span class="sb-k">👔 穿着</span><span class="sb-v">同上</span></div><div class="sb-row"><span class="sb-k">💭 心声</span><span class="sb-v dark">凭什么，凭什么她笑得那么开心……</span></div><div class="sb-row"><span class="sb-k">❤️ 好感度</span><span class="sb-v">61/100　↓</span></div><div class="sb-tail" style="color:#7d4444;">— 阴暗面触发 —</div></div>'+
-    '</div>'+
-    '<div class="card"><div class="ctitle">📝 状态栏规则代码</div><div class="hint">这段会附加到导出文件末尾。可自由修改。</div><textarea id="sbCode" class="code" style="min-height:340px;">'+esc(sb.code||DEFAULT_STATUS_CODE)+'</textarea><div class="btn-row"><button onclick="saveSBCode()">保存</button><button class="ghost" onclick="resetSBCode()">↺ 重置</button><button class="ghost" onclick="copySBCode()">复制</button></div><div id="sbStatus" class="status"></div></div>';
-}
-window.toggleSB=function(checked){if(!_current)return;if(!_current.statusBar)_current.statusBar={enabled:false,code:DEFAULT_STATUS_CODE};_current.statusBar.enabled=checked;autoArchive();renderStatusTab();};
-window.saveSBCode=function(){if(!_current)return;if(!_current.statusBar)_current.statusBar={enabled:false,code:DEFAULT_STATUS_CODE};_current.statusBar.code=$('sbCode').value;autoArchive();showStatus($('sbStatus'),'✓ 已保存','ok');};
-window.resetSBCode=function(){if(!confirm('重置？'))return;_current.statusBar.code=DEFAULT_STATUS_CODE;autoArchive();renderStatusTab();};
-window.copySBCode=function(){navigator.clipboard.writeText($('sbCode').value).then(()=>showStatus($('sbStatus'),'✓ 已复制','ok'));};
-
-/* ===== 关系网 ===== */
+/* 关系网 */
 let selectedNodeId=null;
+let _relUserText='';
 function newNodeId(){return 'n'+Date.now()+Math.floor(Math.random()*1000);}
 
 function renderRelTab(){
   const body=$('relBody');
-  if(!_current){body.innerHTML=buildCharPicker()+'<div class="card"><div class="empty">请先生成或从上方选择 char</div></div>';return;}
+  if(!_current){body.innerHTML=buildCharPicker()+'<div class="card"><div class="empty">请先生成或选择 char</div></div>';return;}
   if(!_current.relations)_current.relations={centerId:null,nodes:[],edges:[],view:{scale:1,tx:0,ty:0},title:''};
   body.innerHTML=buildCharPicker()+
     '<div class="card"><div class="ctitle">👥 角色关系网</div>'+
-      '<div class="hint">基于当前 char 的人设自动生成关系网。可拖动节点、AI 扩展子关系、手动编辑。导出时会作为人设的一部分一起写入。</div>'+
+      '<div class="hint">基于当前 char 人设分析人物，构建关系网。导出时会作为人设一部分写入。</div>'+
       '<label style="margin-top:8px;">补充提示（可选）</label>'+
       '<input id="relHint" placeholder="例：以校园为主线 / 重点扩展家族" />'+
-      '<label>user 人设（可选，提供后关系会更精准）</label>'+
-      '<label class="file-btn" for="relUserFile">📄 选择 user 人设 (txt/docx/md)<input type="file" id="relUserFile" accept=".txt,.docx,.md,text/plain" /></label>'+
+      '<label>user 人设（可选）</label>'+
+      '<label class="file-btn" for="relUserFile">📄 选择 user 人设<input type="file" id="relUserFile" accept=".txt,.docx,.md,text/plain" /></label>'+
       '<div id="relUserName" class="hint" style="margin-top:4px;"></div>'+
-      '<div class="btn-row">'+
-        '<button onclick="genRelMap()">✨ AI 生成关系网</button>'+
-        '<button class="ghost" onclick="clearRelMap()">🗑 清空关系网</button>'+
-      '</div>'+
+      '<div class="btn-row"><button onclick="genRelMap()">✨ AI 生成关系网</button><button class="ghost" onclick="clearRelMap()">🗑 清空</button></div>'+
       '<div id="relStatus" class="status"></div>'+
     '</div>'+
     '<div class="card" style="padding:10px;">'+
       '<div class="canvas-wrap" id="canvasWrap">'+
-        '<div class="canvas-toolbar">'+
-          '<button onclick="zoomBy(1.2)">＋</button>'+
-          '<button onclick="zoomBy(0.83)">－</button>'+
-          '<button onclick="resetView()">⟲</button>'+
-          '<button onclick="addManualNode()">＋NPC</button>'+
-        '</div>'+
+        '<div class="canvas-toolbar"><button onclick="zoomBy(1.2)">＋</button><button onclick="zoomBy(0.83)">－</button><button onclick="resetView()">⟲</button><button onclick="addManualNode()">＋NPC</button></div>'+
         '<div class="canvas-info" id="canvasInfo">空</div>'+
-        '<div class="canvas-inner" id="canvasInner">'+
-          '<svg class="canvas-svg" id="canvasSvg"></svg>'+
-          '<div id="nodeLayer"></div>'+
-        '</div>'+
+        '<div class="canvas-inner" id="canvasInner"><svg class="canvas-svg" id="canvasSvg"></svg><div id="nodeLayer"></div></div>'+
       '</div>'+
-      '<div class="hint" style="margin-top:6px;">拖动节点调整位置 · 单击节点显示操作 · 拖动空白可平移</div>'+
+      '<div class="hint" style="margin-top:6px;">拖动节点 · 单击操作 · 拖空白平移</div>'+
     '</div>';
-  // 绑定 user 文件上传
   $('relUserFile').onchange=async function(e){
     const f=e.target.files[0];if(!f)return;
     $('relUserName').textContent='读取中…';
@@ -1006,23 +1022,19 @@ function renderRelTab(){
   setTimeout(renderCanvas,50);
 }
 
-let _relUserText='';
-
 window.genRelMap=async()=>{
   if(!_current||!_current.content){alert('需要 char 人设');return;}
   const hint=$('relHint').value.trim();
   showStatus($('relStatus'),'AI 分析中…','');
   try{
-    const sys='你是角色关系网构建师。分析 char 人设中提到的所有人物，构建关系网。\n严格输出 JSON：\n{\n  "center":{"name":"主角","role":"主角","desc":"一句话描述"},\n  "relations":[{"name":"NPC","role":"与主角关系","desc":"30-80字描述"}]\n}\n要求：\n· center 取自 char 人设主角；\n· 生成 5-10 个最相关人物；\n· 如有 user 人设，user 必须为 relations 第一个，role 写明与 char 实际关系；\n· 严格基于人设中提到的人，不瞎编重要人物；\n· desc 要生动。';
+    const sys='你是关系网构建师。分析 char 人设中提到的人物。\n输出 JSON：{"center":{"name":"","role":"主角","desc":""},"relations":[{"name":"","role":"与主角关系","desc":"30-80字"}]}\n生成 5-10 个最相关人物；如有 user 人设，user 必须为 relations 第一个。';
     let userMsg='【char 人设】\n'+_current.content.slice(0,8000);
     if(_relUserText.trim())userMsg+='\n\n【user 人设】\n'+_relUserText.slice(0,4000);
     if(hint)userMsg+='\n\n【补充提示】\n'+hint;
-    userMsg+='\n\n请输出关系网 JSON。';
     const out=await callLLM([{role:'system',content:sys},{role:'user',content:userMsg}],{temperature:0.75});
     if(checkBanned(out)){bannedAlert();return;}
     const data=extractJSON(out);
-    const wrap=$('canvasWrap');
-    const W=wrap.clientWidth,H=wrap.clientHeight;
+    const wrap=$('canvasWrap');const W=wrap.clientWidth,H=wrap.clientHeight;
     const cx=W/2,cy=H/2;
     const center={id:newNodeId(),name:data.center.name||_current.name,role:data.center.role||'主角',desc:data.center.desc||'',x:cx,y:cy};
     const nodes=[center];const edges=[];
@@ -1030,22 +1042,15 @@ window.genRelMap=async()=>{
     const R=Math.min(W,H)*0.36;
     rel.forEach((r,i)=>{
       const a=(i/N)*Math.PI*2-Math.PI/2;
-      nodes.push({id:newNodeId(),name:r.name||'NPC',role:r.role||'',desc:r.desc||'',
-        x:cx+R*Math.cos(a),y:cy+R*Math.sin(a)});
+      nodes.push({id:newNodeId(),name:r.name||'NPC',role:r.role||'',desc:r.desc||'',x:cx+R*Math.cos(a),y:cy+R*Math.sin(a)});
       edges.push({from:center.id,to:nodes[nodes.length-1].id,label:r.role||''});
     });
     _current.relations={centerId:center.id,nodes:nodes,edges:edges,view:{scale:1,tx:0,ty:0},title:_current.name+'的关系网'};
     autoArchive();renderCanvas();
-    showStatus($('relStatus'),'✓ 已生成 '+rel.length+' 个关系','ok');
+    showStatus($('relStatus'),'✓ 已生成 '+rel.length+' 个','ok');
   }catch(e){showStatus($('relStatus'),'✗ '+e.message,'err');}
 };
-
-window.clearRelMap=()=>{
-  if(!_current)return;
-  if(!confirm('清空关系网？'))return;
-  _current.relations={centerId:null,nodes:[],edges:[],view:{scale:1,tx:0,ty:0},title:''};
-  selectedNodeId=null;closeNA();autoArchive();renderCanvas();
-};
+window.clearRelMap=()=>{if(!_current||!confirm('清空？'))return;_current.relations={centerId:null,nodes:[],edges:[],view:{scale:1,tx:0,ty:0},title:''};selectedNodeId=null;closeNA();autoArchive();renderCanvas();};
 
 function renderCanvas(){
   if(!_current||!_current.relations)return;
@@ -1069,8 +1074,7 @@ function renderCanvas(){
 }
 function redrawEdges(){
   const svg=$('canvasSvg');if(!svg||!_current||!_current.relations)return;
-  const r=_current.relations;
-  let html='';
+  const r=_current.relations;let html='';
   r.edges.forEach(e=>{
     const a=r.nodes.find(n=>n.id===e.from);const b=r.nodes.find(n=>n.id===e.to);
     if(!a||!b)return;
@@ -1087,8 +1091,7 @@ function redrawEdges(){
 function bindNode(el,node){
   let dragging=false,moved=false,sx=0,sy=0,ox=0,oy=0;
   el.addEventListener('pointerdown',e=>{
-    e.stopPropagation();
-    dragging=true;moved=false;
+    e.stopPropagation();dragging=true;moved=false;
     sx=e.clientX;sy=e.clientY;ox=node.x;oy=node.y;
     try{el.setPointerCapture(e.pointerId);}catch(_){}
   });
@@ -1101,10 +1104,7 @@ function bindNode(el,node){
     el.style.left=node.x+'px';el.style.top=node.y+'px';
     redrawEdges();
   });
-  el.addEventListener('pointerup',e=>{
-    if(!dragging)return;dragging=false;
-    if(!moved)selectNode(node.id);else autoArchive();
-  });
+  el.addEventListener('pointerup',e=>{if(!dragging)return;dragging=false;if(!moved)selectNode(node.id);else autoArchive();});
   el.addEventListener('pointercancel',()=>{dragging=false;});
 }
 function selectNode(id){
@@ -1117,14 +1117,11 @@ function selectNode(id){
 }
 window.closeNA=()=>{$('nodeActions').classList.remove('show');selectedNodeId=null;document.querySelectorAll('.node.selected').forEach(d=>d.classList.remove('selected'));};
 
-// 画布平移
 document.addEventListener('pointerdown',function(e){
-  const wrap=$('canvasWrap');if(!wrap)return;
-  if(!wrap.contains(e.target))return;
+  const wrap=$('canvasWrap');if(!wrap||!wrap.contains(e.target))return;
   if(e.target.closest('.node')||e.target.closest('.canvas-toolbar')||e.target.closest('.canvas-info'))return;
   let panning=true,sx=e.clientX,sy=e.clientY;
-  const r=_current.relations;
-  const otx=r.view.tx,oty=r.view.ty;
+  const r=_current.relations;const otx=r.view.tx,oty=r.view.ty;
   closeNA();
   function mv(ev){if(!panning)return;r.view.tx=otx+(ev.clientX-sx);r.view.ty=oty+(ev.clientY-sy);$('canvasInner').style.transform='translate('+r.view.tx+'px,'+r.view.ty+'px) scale('+r.view.scale+')';}
   function up(){panning=false;document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);autoArchive();}
@@ -1132,30 +1129,22 @@ document.addEventListener('pointerdown',function(e){
   document.addEventListener('pointerup',up);
 });
 
-window.zoomBy=function(k){
-  if(!_current)return;
-  _current.relations.view.scale=Math.min(2.5,Math.max(0.4,_current.relations.view.scale*k));
-  $('canvasInner').style.transform='translate('+_current.relations.view.tx+'px,'+_current.relations.view.ty+'px) scale('+_current.relations.view.scale+')';
-  autoArchive();
-};
+window.zoomBy=function(k){if(!_current)return;_current.relations.view.scale=Math.min(2.5,Math.max(0.4,_current.relations.view.scale*k));$('canvasInner').style.transform='translate('+_current.relations.view.tx+'px,'+_current.relations.view.ty+'px) scale('+_current.relations.view.scale+')';autoArchive();};
 window.resetView=function(){if(!_current)return;_current.relations.view={scale:1,tx:0,ty:0};renderCanvas();};
-
 window.editNode=()=>{
   const n=_current.relations.nodes.find(x=>x.id===selectedNodeId);if(!n)return;
   openModal('<h3>编辑节点</h3><label>姓名</label><input id="_nn" value="'+esc(n.name)+'" /><label>关系/角色</label><input id="_nr" value="'+esc(n.role||'')+'" /><label>描述</label><textarea id="_nd" style="min-height:100px;">'+esc(n.desc||'')+'</textarea><div class="btn-row"><button class="ghost" onclick="closeModal()">取消</button><button onclick="saveNodeEdit()">保存</button></div>');
 };
 window.saveNodeEdit=()=>{
   const n=_current.relations.nodes.find(x=>x.id===selectedNodeId);if(!n)return;
-  n.name=$('_nn').value.trim()||n.name;
-  n.role=$('_nr').value.trim();
-  n.desc=$('_nd').value.trim();
+  n.name=$('_nn').value.trim()||n.name;n.role=$('_nr').value.trim();n.desc=$('_nd').value.trim();
   _current.relations.edges.forEach(e=>{if(e.to===n.id)e.label=n.role;});
   closeModal();autoArchive();renderCanvas();selectNode(n.id);
 };
 window.deleteNode=()=>{
   if(!selectedNodeId)return;
   if(selectedNodeId===_current.relations.centerId){alert('不能删除中心节点');return;}
-  if(!confirm('删除该节点及其子节点？'))return;
+  if(!confirm('删除该节点及子节点？'))return;
   const r=_current.relations;
   const toDel=new Set([selectedNodeId]);let ch=true;
   while(ch){ch=false;r.edges.forEach(e=>{if(toDel.has(e.from)&&!toDel.has(e.to)){toDel.add(e.to);ch=true;}});}
@@ -1167,7 +1156,7 @@ window.setCenter=()=>{if(!selectedNodeId)return;_current.relations.centerId=sele
 window.addChildNode=()=>{
   if(!selectedNodeId)return;
   const parent=_current.relations.nodes.find(n=>n.id===selectedNodeId);if(!parent)return;
-  openModal('<h3>新建子 NPC（连到「'+esc(parent.name)+'」）</h3><label>姓名</label><input id="_cn" placeholder="必填" /><label>关系/角色</label><input id="_cr" /><label>描述</label><textarea id="_cd" style="min-height:80px;"></textarea><div class="btn-row"><button class="ghost" onclick="closeModal()">取消</button><button onclick="saveAddChild()">添加</button></div>');
+  openModal('<h3>新建子 NPC（连到「'+esc(parent.name)+'」）</h3><label>姓名</label><input id="_cn" /><label>关系/角色</label><input id="_cr" /><label>描述</label><textarea id="_cd" style="min-height:80px;"></textarea><div class="btn-row"><button class="ghost" onclick="closeModal()">取消</button><button onclick="saveAddChild()">添加</button></div>');
 };
 window.saveAddChild=()=>{
   const parent=_current.relations.nodes.find(n=>n.id===selectedNodeId);if(!parent)return;
@@ -1187,7 +1176,7 @@ window.addManualNode=()=>{
 window.expandNode=()=>{
   if(!selectedNodeId||!_current||!_current.content){alert('需要 char 人设');return;}
   const node=_current.relations.nodes.find(x=>x.id===selectedNodeId);if(!node)return;
-  openModal('<h3>AI 扩展「'+esc(node.name)+'」的关系</h3><label>方向提示（可选）</label><textarea id="_eh" style="min-height:80px;" placeholder="例：扩展ta的家庭成员"></textarea><div class="hint">基于 char 人设和该 NPC 信息生成 3-5 个相关人物。</div><div class="btn-row"><button class="ghost" onclick="closeModal()">取消</button><button onclick="doExpand()">生成</button></div>');
+  openModal('<h3>AI 扩展「'+esc(node.name)+'」</h3><label>方向提示（可选）</label><textarea id="_eh" style="min-height:80px;"></textarea><div class="btn-row"><button class="ghost" onclick="closeModal()">取消</button><button onclick="doExpand()">生成</button></div>');
 };
 window.doExpand=async()=>{
   const node=_current.relations.nodes.find(x=>x.id===selectedNodeId);if(!node)return;
@@ -1195,35 +1184,28 @@ window.doExpand=async()=>{
   showStatus($('relStatus'),'AI 扩展中…','');
   try{
     const exist=_current.relations.nodes.map(n=>n.name).join('、');
-    const sys='你是关系网扩展师。基于 char 人设和"焦点 NPC"现有信息，为该 NPC 生成 3-5 个紧密相关的人。\n输出 JSON：{"relations":[{"name":"","role":"与焦点NPC的关系","desc":"30-80字"}]}\n注意：1. 不要重复已存在节点：'+exist+' 2. 关系是与"焦点 NPC"的，不是与主角的；3. 优先从 char 人设挖掘。';
-    const userMsg='【char 人设】\n'+_current.content.slice(0,6000)+'\n\n【焦点 NPC】\n姓名：'+node.name+'\n关系：'+(node.role||'')+'\n描述：'+(node.desc||'')+'\n\n'+(hint?'【方向提示】\n'+hint+'\n\n':'')+'请输出 JSON。';
+    const sys='你是关系网扩展师。为"焦点 NPC"生成 3-5 个紧密相关的人物。\n输出 JSON：{"relations":[{"name":"","role":"与焦点NPC的关系","desc":"30-80字"}]}\n不要重复：'+exist;
+    const userMsg='【char 人设】\n'+_current.content.slice(0,6000)+'\n\n【焦点 NPC】\n姓名：'+node.name+'\n关系：'+(node.role||'')+'\n描述：'+(node.desc||'')+'\n\n'+(hint?'【方向提示】\n'+hint:'')+'\n\n请输出 JSON。';
     const out=await callLLM([{role:'system',content:sys},{role:'user',content:userMsg}],{temperature:0.85});
     if(checkBanned(out)){bannedAlert();return;}
-    const data=extractJSON(out);
-    const rel=data.relations||[];const N=rel.length;
+    const data=extractJSON(out);const rel=data.relations||[];const N=rel.length;
     rel.forEach((r,i)=>{
       const a=(i/N)*Math.PI*2;const R=130;
-      const n={id:newNodeId(),name:r.name||'NPC',role:r.role||'',desc:r.desc||'',
-        x:node.x+R*Math.cos(a),y:node.y+R*Math.sin(a)};
+      const n={id:newNodeId(),name:r.name||'NPC',role:r.role||'',desc:r.desc||'',x:node.x+R*Math.cos(a),y:node.y+R*Math.sin(a)};
       _current.relations.nodes.push(n);
       _current.relations.edges.push({from:node.id,to:n.id,label:r.role||''});
     });
     autoArchive();renderCanvas();
-    showStatus($('relStatus'),'✓ 已扩展 '+N+' 个关系','ok');
+    showStatus($('relStatus'),'✓ 已扩展 '+N+' 个','ok');
   }catch(e){showStatus($('relStatus'),'✗ '+e.message,'err');}
 };
 
-/* ===== 关系网文字化 ===== */
+/* 关系网文字化 */
 function buildRelationsText(r){
   if(!r||!r.nodes||!r.nodes.length)return '';
   let out='';
   const center=r.nodes.find(n=>n.id===r.centerId)||r.nodes[0];
-  if(center){
-    out+='【中心人物】'+center.name+(center.role?'（'+center.role+'）':'')+'\n';
-    if(center.desc)out+=center.desc+'\n';
-    out+='\n';
-  }
-  // 直接关系
+  if(center){out+='【中心人物】'+center.name+(center.role?'（'+center.role+'）':'')+'\n';if(center.desc)out+=center.desc+'\n';out+='\n';}
   const direct=r.edges.filter(e=>e.from===center.id);
   if(direct.length){
     out+='─── 直接关系 ───\n\n';
@@ -1234,31 +1216,21 @@ function buildRelationsText(r){
       out+='\n';
     });
   }
-  // 二级关系
   const indirect=r.edges.filter(e=>e.from!==center.id);
   if(indirect.length){
     out+='─── 二级关系网 ───\n\n';
     indirect.forEach(e=>{
       const a=r.nodes.find(x=>x.id===e.from);const b=r.nodes.find(x=>x.id===e.to);
       if(!a||!b)return;
-      out+=a.name+' → '+b.name+'（'+(b.role||'关系不明')+'）\n';
+      out+=a.name+' → '+b.name+'（'+(b.role||'')+'）\n';
       if(b.desc)out+='   '+b.desc+'\n';
       out+='\n';
     });
   }
-  // 孤立节点（防漏）
-  const linked=new Set();
-  r.edges.forEach(e=>{linked.add(e.from);linked.add(e.to);});
-  linked.add(center.id);
-  const orphan=r.nodes.filter(n=>!linked.has(n.id));
-  if(orphan.length){
-    out+='─── 其他人物 ───\n\n';
-    orphan.forEach(n=>{out+='· '+n.name+'（'+(n.role||'')+'）\n'+(n.desc?'   '+n.desc+'\n':'')+'\n';});
-  }
   return out;
 }
 
-/* ===== 导出 ===== */
+/* 导出 */
 function buildExportText(it){
   let out='此内容由177QQ2782238002の生成器生成，使用请标明来源\n\n';
   out+='══════════════════════\n           '+it.name+'\n══════════════════════\n';
@@ -1276,13 +1248,12 @@ function buildExportText(it){
     out+='\n══════════════════════\n           👥 角 色 关 系 网\n══════════════════════\n\n';
     out+=buildRelationsText(it.relations);
   }
-  if(it.statusBar&&it.statusBar.enabled&&it.statusBar.code){
-    out+='\n══════════════════════\n           📊 状 态 栏 规 则\n══════════════════════\n\n';
-    out+=it.statusBar.code+'\n';
-  }
   return out;
 }
-window.copyResult=()=>{if(!_current)return;navigator.clipboard.writeText(buildExportText(_current)).then(()=>showStatus($('genStatus'),'✓ 已复制','ok'));};
+window.copyResult=()=>{
+  if(!_current)return;
+  navigator.clipboard.writeText(buildExportText(_current)).then(()=>showStatus($('genStatus'),'✓ 全部内容已复制到剪贴板','ok')).catch(e=>showStatus($('genStatus'),'✗ 复制失败：'+e.message,'err'));
+};
 window.exportTxt=function(it){
   const text=buildExportText(it);
   const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
@@ -1293,41 +1264,25 @@ window.exportTxt=function(it){
   setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},100);
 };
 
-/* DOCX 生成 */
 function xmlEsc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));}
 async function buildDocxBlob(text){
-  const lines=text.split('\n');
-  let body='';
+  const lines=text.split('\n');let body='';
   lines.forEach(line=>{
     if(line===''){body+='<w:p/>';return;}
     const isCenterLine=/═{3,}/.test(line);
     const isSection=/◆.+◆/.test(line);
     const isSub=/───.+───/.test(line);
-    const bold=isCenterLine||isSection||isSub;
-    const center=isCenterLine;
+    const bold=isCenterLine||isSection||isSub;const center=isCenterLine;
     body+='<w:p>';
     if(center)body+='<w:pPr><w:jc w:val="center"/></w:pPr>';
     body+='<w:r>';
     if(bold)body+='<w:rPr><w:b/></w:rPr>';
     body+='<w:t xml:space="preserve">'+xmlEsc(line)+'</w:t></w:r></w:p>';
   });
-  const documentXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-    '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'+
-    '<w:body>'+body+
-    '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr>'+
-    '</w:body></w:document>';
-  const contentTypes='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
-    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'+
-    '<Default Extension="xml" ContentType="application/xml"/>'+
-    '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'+
-    '</Types>';
-  const rels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
-    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>'+
-    '</Relationships>';
-  const docRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>';
+  const documentXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+body+'<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr></w:body></w:document>';
+  const contentTypes='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>';
+  const rels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>';
+  const docRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>';
   const zip=new JSZip();
   zip.file('[Content_Types].xml',contentTypes);
   zip.file('_rels/.rels',rels);
@@ -1349,7 +1304,7 @@ window.exportDocx=async function(it){
   }catch(e){showStatus($('genStatus'),'✗ '+e.message,'err');}
 };
 
-/* ===== 历史 ===== */
+/* 历史 */
 function renderHist(){
   const arr=JSON.parse(localStorage.getItem(LS.hist)||'[]');
   const box=$('histList');
@@ -1358,13 +1313,13 @@ function renderHist(){
     '<div class="hist-item"><div class="hname">'+esc(it.name)+
       (it.worldbook&&it.worldbook.length?'<span class="badge">🌐'+it.worldbook.length+'</span>':'')+
       (it.relations&&it.relations.nodes&&it.relations.nodes.length?'<span class="badge">👥'+it.relations.nodes.length+'</span>':'')+
-      (it.statusBar&&it.statusBar.enabled?'<span class="badge">📊</span>':'')+
       (it.chat&&it.chat.length?'<span class="badge">💬'+it.chat.length+'</span>':'')+
     '</div>'+
     '<div class="hmeta">'+new Date(it.time).toLocaleString('zh-CN')+'</div>'+
     '<div class="hbtns">'+
       '<button class="ghost" onclick="loadHist('+it.id+')">载入</button>'+
       '<button class="ghost" onclick="viewHist('+it.id+')">查看</button>'+
+      '<button class="ghost" onclick="copyHistById('+it.id+')">复制</button>'+
       '<button class="ghost" onclick="editHistName('+it.id+')">改名</button>'+
       '<button class="ghost" onclick="exportHistById('+it.id+',\'txt\')">TXT</button>'+
       '<button class="ghost" onclick="exportHistById('+it.id+',\'docx\')">DOCX</button>'+
@@ -1379,7 +1334,6 @@ window.loadHist=function(id){
   if(!_current.chat)_current.chat=[];
   if(!_current.worldbook)_current.worldbook=[];
   if(!_current.worldbookPref)_current.worldbookPref='';
-  if(!_current.statusBar)_current.statusBar={enabled:false,code:DEFAULT_STATUS_CODE};
   if(!_current.relations)_current.relations={centerId:null,nodes:[],edges:[],view:{scale:1,tx:0,ty:0},title:''};
   if(it.form)fillForm(it.form);
   document.querySelector('.tab[data-tab="make"]').click();
@@ -1394,10 +1348,12 @@ window.viewHist=function(id){
     extra+='<div style="margin-top:14px;font-weight:600;color:var(--accent-d);">👥 关系网</div>';
     extra+='<div style="white-space:pre-wrap;font-size:13px;background:var(--soft);padding:8px;border-radius:8px;">'+esc(buildRelationsText(it.relations))+'</div>';
   }
-  if(it.statusBar&&it.statusBar.enabled){
-    extra+='<div style="margin-top:14px;font-weight:600;color:var(--accent-d);">📊 状态栏（已启用）</div>';
-  }
-  openModal('<h3>'+esc(it.name)+'</h3><div class="user-card" style="max-height:50vh;overflow-y:auto;">'+esc(it.content)+'</div>'+extra+'<div class="btn-row"><button class="ghost" onclick="closeModal()">关闭</button><button onclick="closeModal();exportHistById('+it.id+',\'txt\')">导出TXT</button><button onclick="closeModal();exportHistById('+it.id+',\'docx\')">导出DOCX</button><button onclick="closeModal();editHistContent('+it.id+')">编辑正文</button></div>');
+  openModal('<h3>'+esc(it.name)+'</h3><div class="user-card" style="max-height:50vh;overflow-y:auto;">'+esc(it.content)+'</div>'+extra+'<div class="btn-row"><button class="ghost" onclick="closeModal()">关闭</button><button onclick="closeModal();copyHistById('+it.id+')">📋 复制</button><button class="ghost" onclick="closeModal();exportHistById('+it.id+',\'txt\')">TXT</button><button class="ghost" onclick="closeModal();exportHistById('+it.id+',\'docx\')">DOCX</button><button class="ghost" onclick="closeModal();editHistContent('+it.id+')">编辑正文</button></div>');
+};
+window.copyHistById=function(id){
+  const arr=JSON.parse(localStorage.getItem(LS.hist)||'[]');
+  const it=arr.find(x=>x.id===id);if(!it)return;
+  navigator.clipboard.writeText(buildExportText(it)).then(()=>alert('✓ 已复制 '+it.name+' 的全部内容到剪贴板'));
 };
 window.editHistContent=function(id){
   const arr=JSON.parse(localStorage.getItem(LS.hist)||'[]');
